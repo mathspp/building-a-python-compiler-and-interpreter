@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import StrEnum, auto
 from string import digits
-from typing import Any
+from typing import Any, Generator
 
 
 class TokenType(StrEnum):
@@ -40,9 +40,15 @@ class Tokenizer:
         else:
             raise RuntimeError(f"Can't tokenize {char!r}.")
 
+    def __iter__(self) -> Generator[Token, None, None]:
+        while (token := self.next_token()).type != TokenType.EOF:
+            yield token
+        yield token  # Yield the EOF token too.
+
 
 if __name__ == "__main__":
     code = "1 + 2 + 3 + 4 - 5 - 6 + 7 - 8"
-    tok = Tokenizer(code)
-    for _ in range(20):
-        print(tok.next_token())
+    tokenizer = Tokenizer(code)
+    print(code)
+    for tok in tokenizer:
+        print(f"\t{tok.type}, {tok.value}")
