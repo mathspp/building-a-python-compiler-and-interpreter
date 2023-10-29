@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from tokenizer import Token, TokenType
+from .tokenizer import Token, TokenType
 
 
 @dataclass
@@ -61,7 +61,7 @@ class Parser:
 
 
 if __name__ == "__main__":
-    from tokenizer import Tokenizer
+    from .tokenizer import Tokenizer
 
     code = "3 + 5"
     parser = Parser(list(Tokenizer(code)))

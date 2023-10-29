@@ -1,7 +1,7 @@
-from parser import Parser
-from parser import BinOp, Int
+from python.parser import Parser
+from python.parser import BinOp, Int
 
-from tokenizer import Token, TokenType
+from python.tokenizer import Token, TokenType
 
 
 def test_parsing_addition():

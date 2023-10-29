@@ -1,6 +1,6 @@
 import pytest
 
-from tokenizer import Token, Tokenizer, TokenType
+from python.tokenizer import Token, Tokenizer, TokenType
 
 
 @pytest.mark.parametrize(
