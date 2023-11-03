@@ -11,8 +11,8 @@ class TreeNode:
 @dataclass
 class BinOp(TreeNode):
     op: str
-    left: TreeNode
-    right: TreeNode
+    left: "Int"
+    right: "Int"
 
 
 @dataclass
