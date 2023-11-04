@@ -10,11 +10,17 @@ class TokenType(StrEnum):
     MINUS = auto()
     EOF = auto()
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}.{self.name}"
+
 
 @dataclass
 class Token:
     type: TokenType
     value: Any = None
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.type!r}, {self.value!r})"
 
 
 class Tokenizer:
