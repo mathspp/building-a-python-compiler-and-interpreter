@@ -28,6 +28,13 @@ class Tokenizer:
         self.code = code
         self.ptr: int = 0
 
+    def consume_int(self) -> int:
+        """Reads an integer from the source code."""
+        start = self.ptr
+        while self.ptr < len(self.code) and self.code[self.ptr] in digits:
+            self.ptr += 1
+        return int(self.code[start : self.ptr])
+
     def next_token(self) -> Token:
         while self.ptr < len(self.code) and self.code[self.ptr] == " ":
             self.ptr += 1
@@ -36,13 +43,15 @@ class Tokenizer:
             return Token(TokenType.EOF)
 
         char = self.code[self.ptr]
-        self.ptr += 1
         if char == "+":
+            self.ptr += 1
             return Token(TokenType.PLUS)
         elif char == "-":
+            self.ptr += 1
             return Token(TokenType.MINUS)
         elif char in digits:
-            return Token(TokenType.INT, int(char))
+            integer = self.consume_int()
+            return Token(TokenType.INT, integer)
         else:
             raise RuntimeError(f"Can't tokenize {char!r}.")
 
