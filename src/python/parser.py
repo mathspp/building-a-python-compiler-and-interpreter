@@ -9,36 +9,52 @@ class TreeNode:
 
 
 @dataclass
-class BinOp(TreeNode):
-    op: str
-    left: "Int | Float"
-    right: "Int | Float"
+class Expr(TreeNode):
+    pass
 
 
 @dataclass
-class Int(TreeNode):
+class BinOp(Expr):
+    op: str
+    left: Expr
+    right: Expr
+
+
+@dataclass
+class Int(Expr):
     value: int
 
 
 @dataclass
-class Float(TreeNode):
+class Float(Expr):
     value: float
 
 
 def print_ast(tree: TreeNode, depth: int = 0) -> None:
     indent = "    " * depth
+    node_name = tree.__class__.__name__
     match tree:
         case BinOp(op, left, right):
-            print(indent + op)
+            print(f"{indent}{node_name}(\n{indent}    {op!r},")
             print_ast(left, depth + 1)
+            print(",")
             print_ast(right, depth + 1)
+            print(f",\n{indent})", end="")
         case Int(value) | Float(value):
-            print(indent + str(value))
+            print(f"{indent}{node_name}({value!r})", end="")
         case _:
-            raise RuntimeError(f"Can't print a node of type {tree.__class__.__name__}")
+            raise RuntimeError(f"Can't print a node of type {node_name}")
+    if depth == 0:
+        print()
 
 
 class Parser:
+    """
+    program := computation
+    computation := number ( (PLUS | MINUS) number )*
+    number := INT | FLOAT
+    """
+
     def __init__(self, tokens: list[Token]) -> None:
         self.tokens = tokens
         self.next_token_index: int = 0
@@ -67,22 +83,20 @@ class Parser:
         else:
             return Float(self.eat(TokenType.FLOAT).value)
 
-    def parse_computation(self) -> BinOp:
+    def parse_computation(self) -> Expr:
         """Parses a computation."""
-        left = self.parse_number()
+        result: Expr
+        result = self.parse_number()
 
-        if self.peek() == TokenType.PLUS:
-            op = "+"
-            self.eat(TokenType.PLUS)
-        else:
-            op = "-"
-            self.eat(TokenType.MINUS)
+        while (next_token_type := self.peek()) in {TokenType.PLUS, TokenType.MINUS}:
+            op = "+" if next_token_type == TokenType.PLUS else "-"
+            self.eat(next_token_type)
+            right = self.parse_number()
+            result = BinOp(op, result, right)
 
-        right = self.parse_number()
+        return result
 
-        return BinOp(op, left, right)
-
-    def parse(self) -> BinOp:
+    def parse(self) -> Expr:
         """Parses the program."""
         computation = self.parse_computation()
         self.eat(TokenType.EOF)
@@ -92,6 +106,6 @@ class Parser:
 if __name__ == "__main__":
     from .tokenizer import Tokenizer
 
-    code = "3 + 5"
+    code = "3 + 5 - 7 + 1.2 + 2.4 - 3.6"
     parser = Parser(list(Tokenizer(code)))
     print_ast(parser.parse())
