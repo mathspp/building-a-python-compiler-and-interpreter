@@ -26,22 +26,28 @@ class Interpreter:
 
     def interpret(self) -> None:
         for bc in self.bytecode:
-            # Interpret this bytecode operator.
-            if bc.type == BytecodeType.PUSH:
-                self.stack.push(bc.value)
-            elif bc.type == BytecodeType.BINOP:
-                right = self.stack.pop()
-                left = self.stack.pop()
-                if bc.value == "+":
-                    result = left + right
-                elif bc.value == "-":
-                    result = left - right
-                else:
-                    raise RuntimeError(f"Unknown operator {bc.value}.")
-                self.stack.push(result)
+            bc_name = bc.type.value
+            interpret_method = getattr(self, f"interpret_{bc_name}", None)
+            if interpret_method is None:
+                raise RuntimeError(f"Can't interpret {bc_name}.")
+            interpret_method(bc)
 
         print("Done!")
         print(self.stack)
+
+    def interpret_push(self, bc: Bytecode) -> None:
+        self.stack.push(bc.value)
+
+    def interpret_binop(self, bc: Bytecode) -> None:
+        right = self.stack.pop()
+        left = self.stack.pop()
+        if bc.value == "+":
+            result = left + right
+        elif bc.value == "-":
+            result = left - right
+        else:
+            raise RuntimeError(f"Unknown operator {bc.value}.")
+        self.stack.push(result)
 
 
 if __name__ == "__main__":
