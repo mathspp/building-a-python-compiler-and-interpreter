@@ -1,5 +1,5 @@
 from python.compiler import Bytecode, BytecodeType, Compiler
-from python.parser import BinOp, Float, Int
+from python.parser import BinOp, Float, Int, UnaryOp
 
 
 def test_compile_addition():
@@ -65,4 +65,46 @@ def test_compile_nested_additions_and_subtractions():
         Bytecode(BytecodeType.BINOP, "+"),
         Bytecode(BytecodeType.PUSH, 3.6),
         Bytecode(BytecodeType.BINOP, "-"),
+    ]
+
+
+def test_compile_unary_minus():
+    tree = UnaryOp("-", Int(3))
+    bytecode = list(Compiler(tree).compile())
+    assert bytecode == [
+        Bytecode(BytecodeType.PUSH, 3),
+        Bytecode(BytecodeType.UNARYOP, "-"),
+    ]
+
+
+def test_compile_unary_plus():
+    tree = UnaryOp("+", Int(3))
+    bytecode = list(Compiler(tree).compile())
+    assert bytecode == [
+        Bytecode(BytecodeType.PUSH, 3),
+        Bytecode(BytecodeType.UNARYOP, "+"),
+    ]
+
+
+def test_compile_unary_operations():
+    tree = UnaryOp(
+        "-",
+        UnaryOp(
+            "-",
+            UnaryOp(
+                "+",
+                UnaryOp(
+                    "+",
+                    Float(3.5),
+                ),
+            ),
+        ),
+    )
+    bytecode = list(Compiler(tree).compile())
+    assert bytecode == [
+        Bytecode(BytecodeType.PUSH, 3.5),
+        Bytecode(BytecodeType.UNARYOP, "+"),
+        Bytecode(BytecodeType.UNARYOP, "+"),
+        Bytecode(BytecodeType.UNARYOP, "-"),
+        Bytecode(BytecodeType.UNARYOP, "-"),
     ]
