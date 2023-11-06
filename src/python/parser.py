@@ -14,6 +14,12 @@ class Expr(TreeNode):
 
 
 @dataclass
+class UnaryOp(Expr):
+    op: str
+    value: Expr
+
+
+@dataclass
 class BinOp(Expr):
     op: str
     left: Expr
@@ -34,6 +40,10 @@ def print_ast(tree: TreeNode, depth: int = 0) -> None:
     indent = "    " * depth
     node_name = tree.__class__.__name__
     match tree:
+        case UnaryOp(op, value):
+            print(f"{indent}{node_name}(\n{indent}    {op!r},")
+            print_ast(value, depth + 1)
+            print(f",\n{indent})", end="")
         case BinOp(op, left, right):
             print(f"{indent}{node_name}(\n{indent}    {op!r},")
             print_ast(left, depth + 1)
@@ -51,7 +61,8 @@ def print_ast(tree: TreeNode, depth: int = 0) -> None:
 class Parser:
     """
     program := computation
-    computation := number ( (PLUS | MINUS) number )*
+    computation := unary ( (PLUS | MINUS) unary )*
+    unary := PLUS unary | MINUS unary | number
     number := INT | FLOAT
     """
 
@@ -83,15 +94,25 @@ class Parser:
         else:
             return Float(self.eat(TokenType.FLOAT).value)
 
+    def parse_unary(self) -> Expr:
+        """Parses an unary operator."""
+        if (next_token_type := self.peek()) in {TokenType.PLUS, TokenType.MINUS}:
+            op = "+" if next_token_type == TokenType.PLUS else "-"
+            self.eat(next_token_type)
+            value = self.parse_unary()
+            return UnaryOp(op, value)
+        else:  # No unary operators in sight.
+            return self.parse_number()
+
     def parse_computation(self) -> Expr:
         """Parses a computation."""
         result: Expr
-        result = self.parse_number()
+        result = self.parse_unary()
 
         while (next_token_type := self.peek()) in {TokenType.PLUS, TokenType.MINUS}:
             op = "+" if next_token_type == TokenType.PLUS else "-"
             self.eat(next_token_type)
-            right = self.parse_number()
+            right = self.parse_unary()
             result = BinOp(op, result, right)
 
         return result
@@ -106,6 +127,6 @@ class Parser:
 if __name__ == "__main__":
     from .tokenizer import Tokenizer
 
-    code = "3 + 5 - 7 + 1.2 + 2.4 - 3.6"
+    code = "--++3.5 - 2"
     parser = Parser(list(Tokenizer(code)))
     print_ast(parser.parse())

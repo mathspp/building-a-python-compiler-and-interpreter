@@ -1,5 +1,5 @@
 from python.parser import Parser
-from python.parser import BinOp, Float, Int
+from python.parser import BinOp, Float, Int, UnaryOp
 
 from python.tokenizer import Token, TokenType
 
@@ -161,4 +161,56 @@ def test_parsing_many_additions_and_subtractions():
             Float(2.4),
         ),
         Float(3.6),
+    )
+
+
+def test_parsing_unary_minus():
+    tokens = [
+        Token(TokenType.MINUS),
+        Token(TokenType.INT, 3),
+        Token(TokenType.EOF),
+    ]
+    tree = Parser(tokens).parse()
+    assert tree == UnaryOp("-", Int(3))
+
+
+def test_parsing_unary_plus():
+    tokens = [
+        Token(TokenType.PLUS),
+        Token(TokenType.FLOAT, 3.0),
+        Token(TokenType.EOF),
+    ]
+    tree = Parser(tokens).parse()
+    assert tree == UnaryOp("+", Float(3))
+
+
+def test_parsing_unary_operators():
+    # --++3.5 - 2
+    tokens = [
+        Token(TokenType.MINUS),
+        Token(TokenType.MINUS),
+        Token(TokenType.PLUS),
+        Token(TokenType.PLUS),
+        Token(TokenType.FLOAT, 3.5),
+        Token(TokenType.MINUS),
+        Token(TokenType.INT, 2),
+        Token(TokenType.EOF),
+    ]
+    tree = Parser(tokens).parse()
+    assert tree == BinOp(
+        "-",
+        UnaryOp(
+            "-",
+            UnaryOp(
+                "-",
+                UnaryOp(
+                    "+",
+                    UnaryOp(
+                        "+",
+                        Float(3.5),
+                    ),
+                ),
+            ),
+        ),
+        Int(2),
     )
