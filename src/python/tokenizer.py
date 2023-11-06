@@ -10,9 +10,19 @@ class TokenType(StrEnum):
     PLUS = auto()
     MINUS = auto()
     EOF = auto()
+    LPAREN = auto()
+    RPAREN = auto()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.name}"
+
+
+CHARS_AS_TOKENS = {
+    "+": TokenType.PLUS,
+    "-": TokenType.MINUS,
+    "(": TokenType.LPAREN,
+    ")": TokenType.RPAREN,
+}
 
 
 @dataclass
@@ -54,12 +64,9 @@ class Tokenizer:
             return Token(TokenType.EOF)
 
         char = self.code[self.ptr]
-        if char == "+":
+        if char in CHARS_AS_TOKENS:
             self.ptr += 1
-            return Token(TokenType.PLUS)
-        elif char == "-":
-            self.ptr += 1
-            return Token(TokenType.MINUS)
+            return Token(CHARS_AS_TOKENS[char])
         elif char in digits:
             integer = self.consume_int()
             # Is the integer followed by a decimal part?
