@@ -1,9 +1,15 @@
 from python.tokenizer import Tokenizer
 from python.parser import Parser
-from python.compiler import Compiler
+from python.compiler import BytecodeType, Compiler
 from python.interpreter import Interpreter
 
 import pytest
+
+
+def test_all_bytecode_types_can_be_interpreted():
+    for bct in BytecodeType:
+        name = bct.value
+        assert hasattr(Interpreter, f"interpret_{name}")
 
 
 def run_computation(code: str) -> int:
@@ -50,4 +56,20 @@ def test_arithmetic_with_floats(code: str, result: int):
     ],
 )
 def test_sequences_of_additions_and_subtractions(code: str, result: int):
+    assert run_computation(code) == result
+
+
+@pytest.mark.parametrize(
+    ["code", "result"],
+    [
+        ("-3", -3),
+        ("+3", 3),
+        ("--3", 3),
+        ("---3", -3),
+        ("----3", 3),
+        ("--++-++-+3", 3),
+        ("--3 + --3", 6),
+    ],
+)
+def test_unary_operators(code: str, result: int):
     assert run_computation(code) == result

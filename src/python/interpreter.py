@@ -1,4 +1,4 @@
-from .compiler import Bytecode, BytecodeType
+from .compiler import Bytecode
 
 
 class Stack:
@@ -45,6 +45,16 @@ class Interpreter:
             result = left + right
         elif bc.value == "-":
             result = left - right
+        else:
+            raise RuntimeError(f"Unknown operator {bc.value}.")
+        self.stack.push(result)
+
+    def interpret_unaryop(self, bc: Bytecode) -> None:
+        result = self.stack.pop()
+        if bc.value == "+":
+            pass
+        elif bc.value == "-":
+            result = -result
         else:
             raise RuntimeError(f"Unknown operator {bc.value}.")
         self.stack.push(result)
