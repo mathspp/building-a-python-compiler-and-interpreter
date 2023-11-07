@@ -73,3 +73,16 @@ def test_sequences_of_additions_and_subtractions(code: str, result: int):
 )
 def test_unary_operators(code: str, result: int):
     assert run_computation(code) == result
+
+
+@pytest.mark.parametrize(
+    ["code", "result"],
+    [
+        ("-(3 + 2)", -5),
+        ("1 - (2 - 3)", 2),
+        ("(((1))) + (2 + (3))", 6),
+        ("(2 - 3) - (5 - 6)", 0),
+    ],
+)
+def test_parenthesised_expressions(code: str, result: int):
+    assert run_computation(code) == result
