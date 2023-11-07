@@ -1,4 +1,16 @@
+import operator
+
 from .compiler import Bytecode
+
+
+BINOPS_TO_OPERATOR = {
+    "**": operator.pow,
+    "%": operator.mod,
+    "/": operator.truediv,
+    "*": operator.mul,
+    "+": operator.add,
+    "-": operator.sub,
+}
 
 
 class Stack:
@@ -41,10 +53,9 @@ class Interpreter:
     def interpret_binop(self, bc: Bytecode) -> None:
         right = self.stack.pop()
         left = self.stack.pop()
-        if bc.value == "+":
-            result = left + right
-        elif bc.value == "-":
-            result = left - right
+        op = BINOPS_TO_OPERATOR.get(bc.value, None)
+        if op is not None:
+            result = op(left, right)
         else:
             raise RuntimeError(f"Unknown operator {bc.value}.")
         self.stack.push(result)

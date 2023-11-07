@@ -86,3 +86,34 @@ def test_unary_operators(code: str, result: int):
 )
 def test_parenthesised_expressions(code: str, result: int):
     assert run_computation(code) == result
+
+
+@pytest.mark.parametrize(
+    ["code", "correct_precedence"],
+    [
+        ("2 + 3 * 4 + 5", "2 + (3 * 4) + 5"),
+        ("2 - 3 * 4 - 5", "2 - (3 * 4) - 5"),
+        ("2 + 3 / 5 + 7", "2 + (3 / 5) + 7"),
+        ("20 % 4 * 10", "(20 % 4) * 10"),
+        ("-2 ** -3", "- (2 ** -3)"),
+        ("2 ** 3 * 4", "(2 ** 3) * 4"),
+        ("2 * 3 ** 4", "2 * (3 ** 4)"),
+        ("5 + 4 % 9", "5 + (4 % 9)"),
+    ],
+)
+def test_arithmetic_operator_precedence(code: str, correct_precedence: str) -> None:
+    assert run_computation(code) == run_computation(correct_precedence)
+
+
+@pytest.mark.parametrize(
+    ["code", "result"],
+    [
+        ("4 % 5 % 3", 1),
+        ("2 * 3 * 4", 24),
+        ("-2 ** 10", -1024),
+        ("2 / 2 / 1", 1.0),
+        ("2 + 3 * 4 ** 5 - 6 % 7 / 8", 3073.25),
+    ],
+)
+def test_all_arithmetic_operators(code: str, result: int | float) -> None:
+    assert run_computation(code) == result
