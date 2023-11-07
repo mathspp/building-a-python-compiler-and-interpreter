@@ -1,7 +1,8 @@
 from python.parser import Parser
 from python.parser import BinOp, Float, Int, UnaryOp
+from python.tokenizer import Token, Tokenizer, TokenType
 
-from python.tokenizer import Token, TokenType
+import pytest
 
 
 def test_parsing_addition():
@@ -214,3 +215,76 @@ def test_parsing_unary_operators():
         ),
         Int(2),
     )
+
+
+def test_parsing_parentheses():
+    # 1 + ( 2 + 3 )
+    tokens = [
+        Token(TokenType.INT, 1),
+        Token(TokenType.PLUS),
+        Token(TokenType.LPAREN),
+        Token(TokenType.INT, 2),
+        Token(TokenType.PLUS),
+        Token(TokenType.INT, 3),
+        Token(TokenType.RPAREN),
+        Token(TokenType.EOF),
+    ]
+    tree = Parser(tokens).parse()
+    assert tree == BinOp(
+        "+",
+        Int(1),
+        BinOp(
+            "+",
+            Int(2),
+            Int(3),
+        ),
+    )
+
+
+def test_parsing_parentheses_around_single_number():
+    # ( ( ( 1 ) ) ) + ( 2 + ( 3 ) )
+    tokens = [
+        Token(TokenType.LPAREN),
+        Token(TokenType.LPAREN),
+        Token(TokenType.LPAREN),
+        Token(TokenType.INT, 1),
+        Token(TokenType.RPAREN),
+        Token(TokenType.RPAREN),
+        Token(TokenType.RPAREN),
+        Token(TokenType.PLUS),
+        Token(TokenType.LPAREN),
+        Token(TokenType.INT, 2),
+        Token(TokenType.PLUS),
+        Token(TokenType.LPAREN),
+        Token(TokenType.INT, 3),
+        Token(TokenType.RPAREN),
+        Token(TokenType.RPAREN),
+        Token(TokenType.EOF),
+    ]
+    tree = Parser(tokens).parse()
+    assert tree == BinOp(
+        "+",
+        Int(1),
+        BinOp(
+            "+",
+            Int(2),
+            Int(3),
+        ),
+    )
+
+
+@pytest.mark.parametrize(
+    "code",
+    [
+        "(1",
+        "()",
+        ") 1 + 2",
+        "1 + 2)",
+        "1 (+) 2",
+        "1 + )2(",
+    ],
+)
+def test_unbalanced_parentheses(code: str):
+    tokens = list(Tokenizer(code))
+    with pytest.raises(RuntimeError):
+        Parser(tokens).parse()

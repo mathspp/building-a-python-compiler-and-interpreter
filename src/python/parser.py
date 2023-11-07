@@ -62,7 +62,8 @@ class Parser:
     """
     program := computation
     computation := unary ( (PLUS | MINUS) unary )*
-    unary := PLUS unary | MINUS unary | number
+    unary := PLUS unary | MINUS unary | atom
+    atom := LPAREN computation RPAREN | number
     number := INT | FLOAT
     """
 
@@ -94,6 +95,16 @@ class Parser:
         else:
             return Float(self.eat(TokenType.FLOAT).value)
 
+    def parse_atom(self) -> Expr:
+        """Parses a parenthesised expression or a number."""
+        if self.peek() == TokenType.LPAREN:
+            self.eat(TokenType.LPAREN)
+            result = self.parse_computation()
+            self.eat(TokenType.RPAREN)
+        else:
+            result = self.parse_number()
+        return result
+
     def parse_unary(self) -> Expr:
         """Parses an unary operator."""
         if (next_token_type := self.peek()) in {TokenType.PLUS, TokenType.MINUS}:
@@ -102,7 +113,7 @@ class Parser:
             value = self.parse_unary()
             return UnaryOp(op, value)
         else:  # No unary operators in sight.
-            return self.parse_number()
+            return self.parse_atom()
 
     def parse_computation(self) -> Expr:
         """Parses a computation."""
@@ -127,6 +138,6 @@ class Parser:
 if __name__ == "__main__":
     from .tokenizer import Tokenizer
 
-    code = "--++3.5 - 2"
+    code = "1 + (2 + 3)"
     parser = Parser(list(Tokenizer(code)))
     print_ast(parser.parse())
