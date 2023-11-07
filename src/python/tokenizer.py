@@ -12,6 +12,10 @@ class TokenType(StrEnum):
     EOF = auto()
     LPAREN = auto()
     RPAREN = auto()
+    MUL = auto()
+    DIV = auto()
+    MOD = auto()
+    EXP = auto()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.name}"
@@ -22,6 +26,9 @@ CHARS_AS_TOKENS = {
     "-": TokenType.MINUS,
     "(": TokenType.LPAREN,
     ")": TokenType.RPAREN,
+    "*": TokenType.MUL,
+    "/": TokenType.DIV,
+    "%": TokenType.MOD,
 }
 
 
@@ -56,6 +63,10 @@ class Tokenizer:
         float_str = self.code[start : self.ptr] if self.ptr - start > 1 else ".0"
         return float(float_str)
 
+    def peek(self, length: int = 1) -> str | None:
+        """Returns the substring that will be tokenized next."""
+        return self.code[self.ptr : self.ptr + length]
+
     def next_token(self) -> Token:
         while self.ptr < len(self.code) and self.code[self.ptr] == " ":
             self.ptr += 1
@@ -64,7 +75,10 @@ class Tokenizer:
             return Token(TokenType.EOF)
 
         char = self.code[self.ptr]
-        if char in CHARS_AS_TOKENS:
+        if self.peek(length=2) == "**":
+            self.ptr += 2
+            return Token(TokenType.EXP)
+        elif char in CHARS_AS_TOKENS:
             self.ptr += 1
             return Token(CHARS_AS_TOKENS[char])
         elif char in digits:

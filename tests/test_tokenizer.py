@@ -20,6 +20,10 @@ from python.tokenizer import Token, Tokenizer, TokenType
         ("123.456", Token(TokenType.FLOAT, 123.456)),
         ("(", Token(TokenType.LPAREN)),
         (")", Token(TokenType.RPAREN)),
+        ("*", Token(TokenType.MUL)),
+        ("**", Token(TokenType.EXP)),
+        ("/", Token(TokenType.DIV)),
+        ("%", Token(TokenType.MOD)),
     ],
 )
 def test_tokenizer_recognises_each_token(code: str, token: Token):
@@ -128,5 +132,21 @@ def test_tokenizer_parentheses_in_code():
         Token(TokenType.LPAREN),
         Token(TokenType.RPAREN),
         Token(TokenType.INT, 4),
+        Token(TokenType.EOF),
+    ]
+
+
+def test_tokenizer_distinguishes_mul_and_exp():
+    tokens = list(Tokenizer("1 * 2 ** 3 * 4 ** 5"))
+    assert tokens == [
+        Token(TokenType.INT, 1),
+        Token(TokenType.MUL),
+        Token(TokenType.INT, 2),
+        Token(TokenType.EXP),
+        Token(TokenType.INT, 3),
+        Token(TokenType.MUL),
+        Token(TokenType.INT, 4),
+        Token(TokenType.EXP),
+        Token(TokenType.INT, 5),
         Token(TokenType.EOF),
     ]
