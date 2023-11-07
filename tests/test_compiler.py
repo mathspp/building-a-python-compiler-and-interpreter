@@ -108,3 +108,59 @@ def test_compile_unary_operations():
         Bytecode(BytecodeType.UNARYOP, "-"),
         Bytecode(BytecodeType.UNARYOP, "-"),
     ]
+
+
+def test_compile_multiplication():
+    tree = BinOp(
+        "*",
+        Int(3),
+        Float(3.14),
+    )
+    bytecode = list(Compiler(tree).compile())
+    assert bytecode == [
+        Bytecode(BytecodeType.PUSH, 3),
+        Bytecode(BytecodeType.PUSH, 3.14),
+        Bytecode(BytecodeType.BINOP, "*"),
+    ]
+
+
+def test_compile_division():
+    tree = BinOp(
+        "/",
+        Int(1),
+        Int(2),
+    )
+    bytecode = list(Compiler(tree).compile())
+    assert bytecode == [
+        Bytecode(BytecodeType.PUSH, 1),
+        Bytecode(BytecodeType.PUSH, 2),
+        Bytecode(BytecodeType.BINOP, "/"),
+    ]
+
+
+def test_compile_exponentiation():
+    tree = BinOp(
+        "**",
+        Float(0.1),
+        Float(3.14),
+    )
+    bytecode = list(Compiler(tree).compile())
+    assert bytecode == [
+        Bytecode(BytecodeType.PUSH, 0.1),
+        Bytecode(BytecodeType.PUSH, 3.14),
+        Bytecode(BytecodeType.BINOP, "**"),
+    ]
+
+
+def test_compile_modulo():
+    tree = BinOp(
+        "%",
+        Int(-3),
+        Float(-5.6),
+    )
+    bytecode = list(Compiler(tree).compile())
+    assert bytecode == [
+        Bytecode(BytecodeType.PUSH, -3),
+        Bytecode(BytecodeType.PUSH, -5.6),
+        Bytecode(BytecodeType.BINOP, "%"),
+    ]
