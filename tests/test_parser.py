@@ -288,3 +288,57 @@ def test_unbalanced_parentheses(code: str):
     tokens = list(Tokenizer(code))
     with pytest.raises(RuntimeError):
         Parser(tokens).parse()
+
+
+def test_parsing_more_operators():
+    # "1 % -2 ** -3 / 5 * 2 + 2 ** 3"
+    tokens = [
+        Token(TokenType.INT, 1),
+        Token(TokenType.MOD),
+        Token(TokenType.MINUS),
+        Token(TokenType.INT, 2),
+        Token(TokenType.EXP),
+        Token(TokenType.MINUS),
+        Token(TokenType.INT, 3),
+        Token(TokenType.DIV),
+        Token(TokenType.INT, 5),
+        Token(TokenType.MUL),
+        Token(TokenType.INT, 2),
+        Token(TokenType.PLUS),
+        Token(TokenType.INT, 2),
+        Token(TokenType.EXP),
+        Token(TokenType.INT, 3),
+        Token(TokenType.EOF),
+    ]
+    tree = Parser(tokens).parse()
+    assert tree == BinOp(
+        "+",
+        BinOp(
+            "*",
+            BinOp(
+                "/",
+                BinOp(
+                    "%",
+                    Int(1),
+                    UnaryOp(
+                        "-",
+                        BinOp(
+                            "**",
+                            Int(2),
+                            UnaryOp(
+                                "-",
+                                Int(3),
+                            ),
+                        ),
+                    ),
+                ),
+                Int(5),
+            ),
+            Int(2),
+        ),
+        BinOp(
+            "**",
+            Int(2),
+            Int(3),
+        ),
+    )
