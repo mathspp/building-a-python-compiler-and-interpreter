@@ -2,13 +2,14 @@ from dataclasses import dataclass
 from enum import auto, StrEnum
 from typing import Any, Generator
 
-from .parser import BinOp, Float, Int, TreeNode, UnaryOp
+from .parser import BinOp, ExprStatement, Float, Int, Program, TreeNode, UnaryOp
 
 
 class BytecodeType(StrEnum):
     BINOP = auto()
     UNARYOP = auto()
     PUSH = auto()
+    POP = auto()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.name}"
@@ -39,6 +40,14 @@ class Compiler:
         if compile_method is None:
             raise RuntimeError(f"Can't compile {node_name}.")
         yield from compile_method(tree)
+
+    def compile_Program(self, program: Program) -> BytecodeGenerator:
+        for statement in program.statements:
+            yield from self._compile(statement)
+
+    def compile_ExprStatement(self, expression: ExprStatement) -> BytecodeGenerator:
+        yield from self._compile(expression.expr)
+        yield Bytecode(BytecodeType.POP)
 
     def compile_UnaryOp(self, tree: UnaryOp) -> BytecodeGenerator:
         yield from self._compile(tree.value)
