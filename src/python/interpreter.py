@@ -1,4 +1,5 @@
 import operator
+from typing import Any
 
 from .compiler import Bytecode
 
@@ -35,6 +36,7 @@ class Interpreter:
         self.stack = Stack()
         self.bytecode = bytecode
         self.ptr: int = 0
+        self.last_value_popped: Any = None
 
     def interpret(self) -> None:
         for bc in self.bytecode:
@@ -45,10 +47,13 @@ class Interpreter:
             interpret_method(bc)
 
         print("Done!")
-        print(self.stack)
+        print(self.last_value_popped)
 
     def interpret_push(self, bc: Bytecode) -> None:
         self.stack.push(bc.value)
+
+    def interpret_pop(self, bc: Bytecode) -> None:
+        self.last_value_popped = self.stack.pop()
 
     def interpret_binop(self, bc: Bytecode) -> None:
         right = self.stack.pop()
