@@ -5,17 +5,18 @@ from typing import Any, Generator
 
 
 class TokenType(StrEnum):
-    INT = auto()
-    FLOAT = auto()
-    PLUS = auto()
-    MINUS = auto()
-    EOF = auto()
-    LPAREN = auto()
-    RPAREN = auto()
-    MUL = auto()
-    DIV = auto()
-    MOD = auto()
-    EXP = auto()
+    INT = auto()  # integers
+    FLOAT = auto()  # floats
+    PLUS = auto()  # +
+    MINUS = auto()  # -
+    EOF = auto()  # end of file
+    LPAREN = auto()  # (
+    RPAREN = auto()  # )
+    MUL = auto()  # *
+    DIV = auto()  # /
+    MOD = auto()  # %
+    EXP = auto()  # **
+    NEWLINE = auto()  # newline character
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.name}"
@@ -45,6 +46,7 @@ class Tokenizer:
     def __init__(self, code: str) -> None:
         self.code = code
         self.ptr: int = 0
+        self.beginning_of_line = True
 
     def consume_int(self) -> int:
         """Reads an integer from the source code."""
@@ -75,6 +77,15 @@ class Tokenizer:
             return Token(TokenType.EOF)
 
         char = self.code[self.ptr]
+        if char == "\n":
+            self.ptr += 1
+            if not self.beginning_of_line:
+                self.beginning_of_line = True
+                return Token(TokenType.NEWLINE)
+            else:
+                return self.next_token()
+
+        self.beginning_of_line = False
         if self.peek(length=2) == "**":
             self.ptr += 2
             return Token(TokenType.EXP)

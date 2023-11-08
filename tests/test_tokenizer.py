@@ -150,3 +150,27 @@ def test_tokenizer_distinguishes_mul_and_exp():
         Token(TokenType.INT, 5),
         Token(TokenType.EOF),
     ]
+
+
+@pytest.mark.parametrize(
+    "code",
+    [
+        ("\n\n\n1 + 2\n3 + 4\n"),  # Extras at the beginning.
+        ("1 + 2\n\n\n3 + 4\n"),  # Extras in the middle.
+        ("1 + 2\n3 + 4\n\n\n"),  # Extras at the end.
+        ("\n\n\n1 + 2\n\n\n3 + 4\n\n\n"),  # Extras everywhere.
+    ],
+)
+def test_tokenizer_ignores_extra_newlines(code: str):
+    tokens = list(Tokenizer(code))
+    assert tokens == [
+        Token(TokenType.INT, 1),
+        Token(TokenType.PLUS),
+        Token(TokenType.INT, 2),
+        Token(TokenType.NEWLINE),
+        Token(TokenType.INT, 3),
+        Token(TokenType.PLUS),
+        Token(TokenType.INT, 4),
+        Token(TokenType.NEWLINE),
+        Token(TokenType.EOF),
+    ]
