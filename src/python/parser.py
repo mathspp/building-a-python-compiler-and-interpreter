@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 from .tokenizer import Token, TokenType
@@ -6,6 +8,21 @@ from .tokenizer import Token, TokenType
 @dataclass
 class TreeNode:
     pass
+
+
+@dataclass
+class Program(TreeNode):
+    statements: list[Statement]
+
+
+@dataclass
+class Statement(TreeNode):
+    pass
+
+
+@dataclass
+class ExprStatement(Statement):
+    expr: Expr
 
 
 @dataclass
@@ -40,6 +57,16 @@ def print_ast(tree: TreeNode, depth: int = 0) -> None:
     indent = "    " * depth
     node_name = tree.__class__.__name__
     match tree:
+        case Program(statements):
+            print(f"{indent}{node_name}([\n", end="")
+            for statement in statements:
+                print_ast(statement, depth + 1)
+                print(",")
+            print(f"{indent}])", end="")
+        case ExprStatement(expr):
+            print(f"{indent}{node_name}(\n", end="")
+            print_ast(expr, depth + 1)
+            print(f",\n{indent})", end="")
         case UnaryOp(op, value):
             print(f"{indent}{node_name}(\n{indent}    {op!r},")
             print_ast(value, depth + 1)
@@ -60,7 +87,11 @@ def print_ast(tree: TreeNode, depth: int = 0) -> None:
 
 class Parser:
     """
-    program := computation
+    program := statement* EOF
+
+    statement := expr_statement
+    expr_statement := computation NEWLINE
+
     computation := term ( (PLUS | MINUS) term )*
     term := unary ( (MUL | DIV | MOD) unary )*
     unary := PLUS unary | MINUS unary | exponentiation
@@ -156,16 +187,30 @@ class Parser:
 
         return result
 
-    def parse(self) -> Expr:
+    def parse_expr_statement(self) -> ExprStatement:
+        """Parses a standalone expression."""
+        expr = ExprStatement(self.parse_computation())
+        self.eat(TokenType.NEWLINE)
+        return expr
+
+    def parse_statement(self) -> Statement:
+        """Parses a statement."""
+        return self.parse_expr_statement()
+
+    def parse(self) -> Program:
         """Parses the program."""
-        computation = self.parse_computation()
+        program = Program([])
+        while self.peek() != TokenType.EOF:
+            program.statements.append(self.parse_statement())
         self.eat(TokenType.EOF)
-        return computation
+        return program
 
 
 if __name__ == "__main__":
     from .tokenizer import Tokenizer
 
-    code = "1 % -2 ** -3 / 5 * 2 + 2 ** 3"
+    code = """1 % -2
+5 ** -3 / 5
+1 * 2 + 2 ** 3"""
     parser = Parser(list(Tokenizer(code)))
     print_ast(parser.parse())

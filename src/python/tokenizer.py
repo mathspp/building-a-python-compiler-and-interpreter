@@ -44,7 +44,7 @@ class Token:
 
 class Tokenizer:
     def __init__(self, code: str) -> None:
-        self.code = code
+        self.code = code + "\n"  # Ensure the program ends with a newline.
         self.ptr: int = 0
         self.beginning_of_line = True
 
@@ -65,7 +65,7 @@ class Tokenizer:
         float_str = self.code[start : self.ptr] if self.ptr - start > 1 else ".0"
         return float(float_str)
 
-    def peek(self, length: int = 1) -> str | None:
+    def peek(self, length: int = 1) -> str:
         """Returns the substring that will be tokenized next."""
         return self.code[self.ptr : self.ptr + length]
 
