@@ -395,7 +395,7 @@ def test_parsing_simple_assignment():
     ]
     tree = Parser(tokens).parse_assignment()
     assert tree == Assignment(
-        Variable("a"),
+        [Variable("a")],
         Int(5),
     )
 
@@ -406,15 +406,15 @@ def test_program_with_assignments():
     assert tree == Program(
         [
             Assignment(
-                Variable("a"),
+                [Variable("a")],
                 Int(3),
             ),
             Assignment(
-                Variable("b"),
+                [Variable("b")],
                 Int(7),
             ),
             Assignment(
-                Variable("d"),
+                [Variable("d")],
                 BinOp(
                     "%",
                     BinOp(
@@ -435,12 +435,29 @@ def test_parse_variable_references():
     assert tree == Program(
         [
             Assignment(
-                Variable("a"),
+                [Variable("a")],
                 BinOp(
                     "+",
                     Variable("b"),
                     Int(3),
                 ),
+            ),
+        ]
+    )
+
+
+def test_consecutive_assignments():
+    code = "a = b = c = 3"
+    tree = Parser(list(Tokenizer(code))).parse()
+    assert tree == Program(
+        [
+            Assignment(
+                [
+                    Variable("a"),
+                    Variable("b"),
+                    Variable("c"),
+                ],
+                Int(3),
             ),
         ]
     )

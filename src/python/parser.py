@@ -22,7 +22,7 @@ class Statement(TreeNode):
 
 @dataclass
 class Assignment(Statement):
-    target: Variable
+    targets: list[Variable]
     value: Expr
 
 
@@ -74,10 +74,13 @@ def print_ast(tree: TreeNode, depth: int = 0) -> None:
                 print_ast(statement, depth + 1)
                 print(",")
             print(f"{indent}])", end="")
-        case Assignment(target, value):
-            print(f"{indent}{node_name}(\n", end="")
-            print_ast(target, depth + 1)
-            print(",")
+        case Assignment(targets, value):
+            print(f"{indent}{node_name}(")
+            print(f"{indent}    [")
+            for target in targets:
+                print_ast(target, depth + 2)
+                print(",")
+            print(f"{indent}    ],")
             print_ast(value, depth + 1)
             print(f",\n{indent})", end="")
         case ExprStatement(expr):
@@ -108,7 +111,7 @@ class Parser:
     program := statement* EOF
 
     statement := expr_statement | assignment
-    assignment := NAME ASSIGN computation NEWLINE
+    assignment := ( NAME ASSIGN )+ computation NEWLINE
     expr_statement := computation NEWLINE
 
     computation := term ( (PLUS | MINUS) term )*
@@ -216,12 +219,17 @@ class Parser:
 
     def parse_assignment(self) -> Assignment:
         """Parses an assignment."""
-        name_token = self.eat(TokenType.NAME)
-        var = Variable(name_token.value)
-        self.eat(TokenType.ASSIGN)
+        first = True
+        targets: list[Variable] = []
+        while first or self.peek(skip=1) == TokenType.ASSIGN:
+            first = False
+            name_token = self.eat(TokenType.NAME)
+            self.eat(TokenType.ASSIGN)
+            targets.append(Variable(name_token.value))
+
         value = self.parse_computation()
         self.eat(TokenType.NEWLINE)
-        return Assignment(var, value)
+        return Assignment(targets, value)
 
     def parse_statement(self) -> Statement:
         """Parses a statement."""
