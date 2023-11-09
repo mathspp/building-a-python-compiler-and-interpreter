@@ -29,6 +29,7 @@ from python.tokenizer import Token, Tokenizer, TokenType
         ("_123", Token(TokenType.NAME, "_123")),
         ("_", Token(TokenType.NAME, "_")),
         ("a_2_c_3___", Token(TokenType.NAME, "a_2_c_3___")),
+        ("=", Token(TokenType.ASSIGN)),
     ],
 )
 def test_tokenizer_recognises_each_token(code: str, token: Token):
@@ -197,6 +198,21 @@ def test_tokenizer_names():
         Token(TokenType.NAME, "b"),
         Token(TokenType.NAME, "c12"),
         Token(TokenType.NAME, "__d"),
+        Token(TokenType.NEWLINE),
+        Token(TokenType.EOF),
+    ]
+
+
+def test_tokenizer_assignment_operator():
+    code = "a = 3 = = 5"
+    tokens = list(Tokenizer(code))
+    assert tokens == [
+        Token(TokenType.NAME, "a"),
+        Token(TokenType.ASSIGN),
+        Token(TokenType.INT, 3),
+        Token(TokenType.ASSIGN),
+        Token(TokenType.ASSIGN),
+        Token(TokenType.INT, 5),
         Token(TokenType.NEWLINE),
         Token(TokenType.EOF),
     ]

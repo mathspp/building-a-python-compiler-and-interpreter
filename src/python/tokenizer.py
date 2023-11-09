@@ -18,6 +18,7 @@ class TokenType(StrEnum):
     EXP = auto()  # **
     NEWLINE = auto()  # newline character
     NAME = auto()  # any possible variable name
+    ASSIGN = auto()  # =
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.name}"
@@ -31,6 +32,7 @@ CHARS_AS_TOKENS = {
     "*": TokenType.MUL,
     "/": TokenType.DIV,
     "%": TokenType.MOD,
+    "=": TokenType.ASSIGN,
 }
 
 LEGAL_NAME_CHARACTERS = ascii_letters + digits + "_"
