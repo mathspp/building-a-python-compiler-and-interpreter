@@ -34,6 +34,7 @@ class Stack:
 class Interpreter:
     def __init__(self, bytecode: list[Bytecode]) -> None:
         self.stack = Stack()
+        self.scope: dict[str, Any] = {}
         self.bytecode = bytecode
         self.ptr: int = 0
         self.last_value_popped: Any = None
@@ -47,6 +48,7 @@ class Interpreter:
             interpret_method(bc)
 
         print("Done!")
+        print(self.scope)
         print(self.last_value_popped)
 
     def interpret_push(self, bc: Bytecode) -> None:
@@ -74,6 +76,9 @@ class Interpreter:
         else:
             raise RuntimeError(f"Unknown operator {bc.value}.")
         self.stack.push(result)
+
+    def interpret_save(self, bc: Bytecode) -> None:
+        self.scope[bc.value] = self.stack.pop()
 
 
 if __name__ == "__main__":

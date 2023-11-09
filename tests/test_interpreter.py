@@ -1,3 +1,5 @@
+from typing import Any
+
 from python.tokenizer import Tokenizer
 from python.parser import Parser
 from python.compiler import BytecodeType, Compiler
@@ -12,13 +14,21 @@ def test_all_bytecode_types_can_be_interpreted():
         assert hasattr(Interpreter, f"interpret_{name}")
 
 
-def run_computation(code: str) -> int:
+def _run(code: str) -> Interpreter:
     tokens = list(Tokenizer(code))
     tree = Parser(tokens).parse()
     bytecode = list(Compiler(tree).compile())
     interpreter = Interpreter(bytecode)
     interpreter.interpret()
-    return interpreter.last_value_popped
+    return interpreter
+
+
+def run_computation(code: str) -> int:
+    return _run(code).last_value_popped
+
+
+def run_get_scope(code: str) -> dict[str, Any]:
+    return _run(code).scope
 
 
 @pytest.mark.parametrize(
@@ -101,7 +111,7 @@ def test_parenthesised_expressions(code: str, result: int):
         ("5 + 4 % 9", "5 + (4 % 9)"),
     ],
 )
-def test_arithmetic_operator_precedence(code: str, correct_precedence: str) -> None:
+def test_arithmetic_operator_precedence(code: str, correct_precedence: str):
     assert run_computation(code) == run_computation(correct_precedence)
 
 
@@ -115,5 +125,28 @@ def test_arithmetic_operator_precedence(code: str, correct_precedence: str) -> N
         ("2 + 3 * 4 ** 5 - 6 % 7 / 8", 3073.25),
     ],
 )
-def test_all_arithmetic_operators(code: str, result: int | float) -> None:
+def test_all_arithmetic_operators(code: str, result: int | float):
     assert run_computation(code) == result
+
+
+def test_simple_assignment():
+    code = "a = 3"
+    scope = run_get_scope(code)
+    assert len(scope) == 1
+    assert scope["a"] == 3
+
+
+def test_overriding_assignment():
+    code = "a = 3\na = 4\na = 5"
+    scope = run_get_scope(code)
+    assert len(scope) == 1
+    assert scope["a"] == 5
+
+
+def test_multiple_assignment_statements():
+    code = "a = 1\nb = 2\na = 3\nc = 4\na = 5"
+    scope = run_get_scope(code)
+    assert len(scope) == 3
+    assert scope["a"] == 5
+    assert scope["b"] == 2
+    assert scope["c"] == 4
