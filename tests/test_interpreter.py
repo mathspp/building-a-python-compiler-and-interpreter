@@ -157,6 +157,7 @@ def test_multiple_assignment_statements():
     [
         ("a = 1\nb = 1\nc = a + b", {"a": 1, "b": 1, "c": 2}),
         ("a = 1\nb = a\nc = b\na = 3", {"a": 3, "b": 1, "c": 1}),
+        ("a = b = c = 3", {"a": 3, "b": 3, "c": 3}),
     ],
 )
 def test_assignments_and_references(code: str, scope: dict[str, Any]):

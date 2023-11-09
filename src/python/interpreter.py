@@ -54,7 +54,7 @@ class Interpreter:
     def interpret_push(self, bc: Bytecode) -> None:
         self.stack.push(bc.value)
 
-    def interpret_pop(self, bc: Bytecode) -> None:
+    def interpret_pop(self, _: Bytecode) -> None:
         self.last_value_popped = self.stack.pop()
 
     def interpret_binop(self, bc: Bytecode) -> None:
@@ -82,6 +82,9 @@ class Interpreter:
 
     def interpret_load(self, bc: Bytecode) -> None:
         self.stack.push(self.scope[bc.value])
+
+    def interpret_copy(self, _: Bytecode) -> None:
+        self.stack.push(self.stack.peek())
 
 
 if __name__ == "__main__":
