@@ -80,6 +80,9 @@ class Interpreter:
     def interpret_save(self, bc: Bytecode) -> None:
         self.scope[bc.value] = self.stack.pop()
 
+    def interpret_load(self, bc: Bytecode) -> None:
+        self.stack.push(self.scope[bc.value])
+
 
 if __name__ == "__main__":
     import sys

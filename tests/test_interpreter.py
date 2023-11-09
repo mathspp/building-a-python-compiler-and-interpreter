@@ -150,3 +150,14 @@ def test_multiple_assignment_statements():
     assert scope["a"] == 5
     assert scope["b"] == 2
     assert scope["c"] == 4
+
+
+@pytest.mark.parametrize(
+    ["code", "scope"],
+    [
+        ("a = 1\nb = 1\nc = a + b", {"a": 1, "b": 1, "c": 2}),
+        ("a = 1\nb = a\nc = b\na = 3", {"a": 3, "b": 1, "c": 1}),
+    ],
+)
+def test_assignments_and_references(code: str, scope: dict[str, Any]):
+    assert scope == run_get_scope(code)
