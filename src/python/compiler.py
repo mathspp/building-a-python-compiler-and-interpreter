@@ -11,6 +11,7 @@ from .parser import (
     Program,
     TreeNode,
     UnaryOp,
+    Variable,
 )
 
 
@@ -20,6 +21,7 @@ class BytecodeType(StrEnum):
     PUSH = auto()
     POP = auto()
     SAVE = auto()
+    LOAD = auto()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.name}"
@@ -77,6 +79,9 @@ class Compiler:
 
     def compile_Float(self, tree: Float) -> BytecodeGenerator:
         yield Bytecode(BytecodeType.PUSH, tree.value)
+
+    def compile_Variable(self, var: Variable) -> BytecodeGenerator:
+        yield Bytecode(BytecodeType.LOAD, var.name)
 
 
 if __name__ == "__main__":

@@ -227,3 +227,25 @@ def test_compile_program_with_assignments():
         Bytecode(BytecodeType.PUSH, 7),
         Bytecode(BytecodeType.SAVE, "b"),
     ]
+
+
+def test_compile_variable_reference():
+    tree = Program(
+        [
+            Assignment(
+                Variable("a"),
+                BinOp(
+                    "+",
+                    Variable("b"),
+                    Int(3),
+                ),
+            ),
+        ]
+    )
+    bytecode = list(Compiler(tree).compile())
+    assert bytecode == [
+        Bytecode(BytecodeType.LOAD, "b"),
+        Bytecode(BytecodeType.PUSH, 3),
+        Bytecode(BytecodeType.BINOP, "+"),
+        Bytecode(BytecodeType.SAVE, "a"),
+    ]
