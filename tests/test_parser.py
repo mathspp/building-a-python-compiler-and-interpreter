@@ -1,5 +1,14 @@
 from python.parser import Parser
-from python.parser import BinOp, ExprStatement, Float, Int, Program, UnaryOp
+from python.parser import (
+    Assignment,
+    BinOp,
+    ExprStatement,
+    Float,
+    Int,
+    Program,
+    UnaryOp,
+    Variable,
+)
 from python.tokenizer import Token, Tokenizer, TokenType
 
 import pytest
@@ -371,6 +380,49 @@ def test_parsing_multiple_statements():
                         Int(2),
                         Int(3),
                     ),
+                ),
+            ),
+        ]
+    )
+
+
+def test_parsing_simple_assignment():
+    tokens = [
+        Token(TokenType.NAME, "a"),
+        Token(TokenType.ASSIGN),
+        Token(TokenType.INT, 5),
+        Token(TokenType.NEWLINE),
+    ]
+    tree = Parser(tokens).parse_assignment()
+    assert tree == Assignment(
+        Variable("a"),
+        Int(5),
+    )
+
+
+def test_program_with_assignments():
+    code = "a = 3\nb = 7\nd = 2 ** 2 % 4"
+    tree = Parser(list(Tokenizer(code))).parse()
+    assert tree == Program(
+        [
+            Assignment(
+                Variable("a"),
+                Int(3),
+            ),
+            Assignment(
+                Variable("b"),
+                Int(7),
+            ),
+            Assignment(
+                Variable("d"),
+                BinOp(
+                    "%",
+                    BinOp(
+                        "**",
+                        Int(2),
+                        Int(2),
+                    ),
+                    Int(4),
                 ),
             ),
         ]

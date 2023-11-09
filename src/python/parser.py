@@ -21,6 +21,12 @@ class Statement(TreeNode):
 
 
 @dataclass
+class Assignment(Statement):
+    target: Variable
+    value: Expr
+
+
+@dataclass
 class ExprStatement(Statement):
     expr: Expr
 
@@ -53,6 +59,11 @@ class Float(Expr):
     value: float
 
 
+@dataclass
+class Variable(Expr):
+    name: str
+
+
 def print_ast(tree: TreeNode, depth: int = 0) -> None:
     indent = "    " * depth
     node_name = tree.__class__.__name__
@@ -63,6 +74,12 @@ def print_ast(tree: TreeNode, depth: int = 0) -> None:
                 print_ast(statement, depth + 1)
                 print(",")
             print(f"{indent}])", end="")
+        case Assignment(target, value):
+            print(f"{indent}{node_name}(\n", end="")
+            print_ast(target, depth + 1)
+            print(",")
+            print_ast(value, depth + 1)
+            print(f",\n{indent})", end="")
         case ExprStatement(expr):
             print(f"{indent}{node_name}(\n", end="")
             print_ast(expr, depth + 1)
@@ -77,7 +94,8 @@ def print_ast(tree: TreeNode, depth: int = 0) -> None:
             print(",")
             print_ast(right, depth + 1)
             print(f",\n{indent})", end="")
-        case Int(value) | Float(value):
+        case Int(value) | Float(value) | Variable(value):
+            # (The `value` of the variable is actually its name...)
             print(f"{indent}{node_name}({value!r})", end="")
         case _:
             raise RuntimeError(f"Can't print a node of type {node_name}")
@@ -89,7 +107,8 @@ class Parser:
     """
     program := statement* EOF
 
-    statement := expr_statement
+    statement := expr_statement | assignment
+    assignment := NAME ASSIGN computation NEWLINE
     expr_statement := computation NEWLINE
 
     computation := term ( (PLUS | MINUS) term )*
@@ -193,9 +212,21 @@ class Parser:
         self.eat(TokenType.NEWLINE)
         return expr
 
+    def parse_assignment(self) -> Assignment:
+        """Parses an assignment."""
+        name_token = self.eat(TokenType.NAME)
+        var = Variable(name_token.value)
+        self.eat(TokenType.ASSIGN)
+        value = self.parse_computation()
+        self.eat(TokenType.NEWLINE)
+        return Assignment(var, value)
+
     def parse_statement(self) -> Statement:
         """Parses a statement."""
-        return self.parse_expr_statement()
+        if self.peek(skip=1) == TokenType.ASSIGN:
+            return self.parse_assignment()
+        else:
+            return self.parse_expr_statement()
 
     def parse(self) -> Program:
         """Parses the program."""
@@ -207,10 +238,9 @@ class Parser:
 
 
 if __name__ == "__main__":
+    import sys
     from .tokenizer import Tokenizer
 
-    code = """1 % -2
-5 ** -3 / 5
-1 * 2 + 2 ** 3"""
+    code = sys.argv[1]
     parser = Parser(list(Tokenizer(code)))
     print_ast(parser.parse())
