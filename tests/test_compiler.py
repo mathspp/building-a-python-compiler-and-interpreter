@@ -198,7 +198,7 @@ def test_compile_program_and_expr_statement():
 
 def test_compile_assignment():
     tree = Assignment(
-        Variable("_123"),
+        [Variable("_123")],
         Int(3),
     )
     bytecode = list(Compiler(tree).compile())
@@ -211,9 +211,9 @@ def test_compile_assignment():
 def test_compile_program_with_assignments():
     tree = Program(
         [
-            Assignment(Variable("a"), Int(3)),
+            Assignment([Variable("a")], Int(3)),
             ExprStatement(BinOp("**", Int(4), Int(5))),
-            Assignment(Variable("b"), Int(7)),
+            Assignment([Variable("b")], Int(7)),
         ]
     )
     bytecode = list(Compiler(tree).compile())
@@ -233,7 +233,7 @@ def test_compile_variable_reference():
     tree = Program(
         [
             Assignment(
-                Variable("a"),
+                [Variable("a")],
                 BinOp(
                     "+",
                     Variable("b"),
@@ -248,4 +248,28 @@ def test_compile_variable_reference():
         Bytecode(BytecodeType.PUSH, 3),
         Bytecode(BytecodeType.BINOP, "+"),
         Bytecode(BytecodeType.SAVE, "a"),
+    ]
+
+
+def test_compile_consecutive_assignments():
+    tree = Program(
+        [
+            Assignment(
+                [
+                    Variable("a"),
+                    Variable("b"),
+                    Variable("c"),
+                ],
+                Int(3),
+            ),
+        ]
+    )
+    bytecode = list(Compiler(tree).compile())
+    assert bytecode == [
+        Bytecode(BytecodeType.PUSH, 3),
+        Bytecode(BytecodeType.COPY),
+        Bytecode(BytecodeType.SAVE, "a"),
+        Bytecode(BytecodeType.COPY),
+        Bytecode(BytecodeType.SAVE, "b"),
+        Bytecode(BytecodeType.SAVE, "c"),
     ]

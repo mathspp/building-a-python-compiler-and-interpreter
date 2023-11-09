@@ -22,6 +22,7 @@ class BytecodeType(StrEnum):
     POP = auto()
     SAVE = auto()
     LOAD = auto()
+    COPY = auto()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.name}"
@@ -33,7 +34,10 @@ class Bytecode:
     value: Any = None
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.type!r}, {self.value!r})"
+        if self.value is not None:
+            return f"{self.__class__.__name__}({self.type!r}, {self.value!r})"
+        else:
+            return f"{self.__class__.__name__}({self.type!r})"
 
 
 type BytecodeGenerator = Generator[Bytecode, None, None]
@@ -59,7 +63,12 @@ class Compiler:
 
     def compile_Assignment(self, assignment: Assignment) -> BytecodeGenerator:
         yield from self._compile(assignment.value)
-        yield Bytecode(BytecodeType.SAVE, assignment.target.name)
+        # For all but the last, we create a copy before saving.
+        for target in assignment.targets[:-1]:
+            yield Bytecode(BytecodeType.COPY)
+            yield Bytecode(BytecodeType.SAVE, target.name)
+        # Last one, we can finally consume the value at the top of the stack.
+        yield Bytecode(BytecodeType.SAVE, assignment.targets[-1].name)
 
     def compile_ExprStatement(self, expression: ExprStatement) -> BytecodeGenerator:
         yield from self._compile(expression.expr)
