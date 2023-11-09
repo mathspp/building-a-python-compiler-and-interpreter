@@ -1,5 +1,14 @@
 from python.compiler import Bytecode, BytecodeType, Compiler
-from python.parser import BinOp, ExprStatement, Float, Int, Program, UnaryOp
+from python.parser import (
+    Assignment,
+    BinOp,
+    ExprStatement,
+    Float,
+    Int,
+    Program,
+    UnaryOp,
+    Variable,
+)
 
 
 def test_compile_addition():
@@ -184,4 +193,37 @@ def test_compile_program_and_expr_statement():
         Bytecode(BytecodeType.PUSH, 4.0),
         Bytecode(BytecodeType.BINOP, "+"),
         Bytecode(BytecodeType.POP),
+    ]
+
+
+def test_compile_assignment():
+    tree = Assignment(
+        Variable("_123"),
+        Int(3),
+    )
+    bytecode = list(Compiler(tree).compile())
+    assert bytecode == [
+        Bytecode(BytecodeType.PUSH, 3),
+        Bytecode(BytecodeType.SAVE, "_123"),
+    ]
+
+
+def test_compile_program_with_assignments():
+    tree = Program(
+        [
+            Assignment(Variable("a"), Int(3)),
+            ExprStatement(BinOp("**", Int(4), Int(5))),
+            Assignment(Variable("b"), Int(7)),
+        ]
+    )
+    bytecode = list(Compiler(tree).compile())
+    assert bytecode == [
+        Bytecode(BytecodeType.PUSH, 3),
+        Bytecode(BytecodeType.SAVE, "a"),
+        Bytecode(BytecodeType.PUSH, 4),
+        Bytecode(BytecodeType.PUSH, 5),
+        Bytecode(BytecodeType.BINOP, "**"),
+        Bytecode(BytecodeType.POP, None),
+        Bytecode(BytecodeType.PUSH, 7),
+        Bytecode(BytecodeType.SAVE, "b"),
     ]

@@ -2,7 +2,16 @@ from dataclasses import dataclass
 from enum import auto, StrEnum
 from typing import Any, Generator
 
-from .parser import BinOp, ExprStatement, Float, Int, Program, TreeNode, UnaryOp
+from .parser import (
+    Assignment,
+    BinOp,
+    ExprStatement,
+    Float,
+    Int,
+    Program,
+    TreeNode,
+    UnaryOp,
+)
 
 
 class BytecodeType(StrEnum):
@@ -10,6 +19,7 @@ class BytecodeType(StrEnum):
     UNARYOP = auto()
     PUSH = auto()
     POP = auto()
+    SAVE = auto()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.name}"
@@ -45,6 +55,10 @@ class Compiler:
         for statement in program.statements:
             yield from self._compile(statement)
 
+    def compile_Assignment(self, assignment: Assignment) -> BytecodeGenerator:
+        yield from self._compile(assignment.value)
+        yield Bytecode(BytecodeType.SAVE, assignment.target.name)
+
     def compile_ExprStatement(self, expression: ExprStatement) -> BytecodeGenerator:
         yield from self._compile(expression.expr)
         yield Bytecode(BytecodeType.POP)
@@ -66,9 +80,11 @@ class Compiler:
 
 
 if __name__ == "__main__":
+    import sys
     from .tokenizer import Tokenizer
     from .parser import Parser
 
-    compiler = Compiler(Parser(list(Tokenizer("3 + 5 - 7 + 1.2 + 2.4 - 3.6"))).parse())
+    code = sys.argv[1]
+    compiler = Compiler(Parser(list(Tokenizer(code))).parse())
     for bc in compiler.compile():
         print(bc)
