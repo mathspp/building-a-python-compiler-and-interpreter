@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import StrEnum, auto
-from string import digits
+from string import digits, ascii_letters
 from typing import Any, Generator
 
 
@@ -17,6 +17,7 @@ class TokenType(StrEnum):
     MOD = auto()  # %
     EXP = auto()  # **
     NEWLINE = auto()  # newline character
+    NAME = auto()  # any possible variable name
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.name}"
@@ -32,6 +33,9 @@ CHARS_AS_TOKENS = {
     "%": TokenType.MOD,
 }
 
+LEGAL_NAME_CHARACTERS = ascii_letters + digits + "_"
+LEGAL_NAME_START_CHARACTERS = ascii_letters + "_"
+
 
 @dataclass
 class Token:
@@ -39,7 +43,10 @@ class Token:
     value: Any = None
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.type!r}, {self.value!r})"
+        if self.value is not None:
+            return f"{self.__class__.__name__}({self.type!r}, {self.value!r})"
+        else:
+            return f"{self.__class__.__name__}({self.type!r})"
 
 
 class Tokenizer:
@@ -64,6 +71,16 @@ class Tokenizer:
         # Did we actually read _any_ digits or did we only manage to read the `.`?
         float_str = self.code[start : self.ptr] if self.ptr - start > 1 else ".0"
         return float(float_str)
+
+    def consume_name(self) -> str:
+        """Consumes a sequence of characters that could be a variable name."""
+        start = self.ptr
+        self.ptr += 1
+        while (
+            self.ptr < len(self.code) and self.code[self.ptr] in LEGAL_NAME_CHARACTERS
+        ):
+            self.ptr += 1
+        return self.code[start : self.ptr]
 
     def peek(self, length: int = 1) -> str:
         """Returns the substring that will be tokenized next."""
@@ -92,6 +109,9 @@ class Tokenizer:
         elif char in CHARS_AS_TOKENS:
             self.ptr += 1
             return Token(CHARS_AS_TOKENS[char])
+        elif char in LEGAL_NAME_START_CHARACTERS:
+            name = self.consume_name()
+            return Token(TokenType.NAME, name)
         elif char in digits:
             integer = self.consume_int()
             # Is the integer followed by a decimal part?
@@ -116,8 +136,8 @@ class Tokenizer:
 
 
 if __name__ == "__main__":
-    code = "1 + 2 + 3 + 4 - 5 - 6 + 7 - 8"
-    tokenizer = Tokenizer(code)
-    print(code)
-    for tok in tokenizer:
-        print(f"\t{tok.type}, {tok.value}")
+    import sys
+
+    code = sys.argv[1]
+    for token in Tokenizer(code):
+        print(token)

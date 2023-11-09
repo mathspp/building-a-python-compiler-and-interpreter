@@ -24,6 +24,11 @@ from python.tokenizer import Token, Tokenizer, TokenType
         ("**", Token(TokenType.EXP)),
         ("/", Token(TokenType.DIV)),
         ("%", Token(TokenType.MOD)),
+        ("a", Token(TokenType.NAME, "a")),
+        ("abc123_", Token(TokenType.NAME, "abc123_")),
+        ("_123", Token(TokenType.NAME, "_123")),
+        ("_", Token(TokenType.NAME, "_")),
+        ("a_2_c_3___", Token(TokenType.NAME, "a_2_c_3___")),
     ],
 )
 def test_tokenizer_recognises_each_token(code: str, token: Token):
@@ -176,6 +181,22 @@ def test_tokenizer_ignores_extra_newlines(code: str):
         Token(TokenType.INT, 3),
         Token(TokenType.PLUS),
         Token(TokenType.INT, 4),
+        Token(TokenType.NEWLINE),
+        Token(TokenType.EOF),
+    ]
+
+
+def test_tokenizer_names():
+    code = "a + 3 - b c12 __d"
+    tokens = list(Tokenizer(code))
+    assert tokens == [
+        Token(TokenType.NAME, "a"),
+        Token(TokenType.PLUS),
+        Token(TokenType.INT, 3),
+        Token(TokenType.MINUS),
+        Token(TokenType.NAME, "b"),
+        Token(TokenType.NAME, "c12"),
+        Token(TokenType.NAME, "__d"),
         Token(TokenType.NEWLINE),
         Token(TokenType.EOF),
     ]
