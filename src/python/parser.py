@@ -115,8 +115,8 @@ class Parser:
     term := unary ( (MUL | DIV | MOD) unary )*
     unary := PLUS unary | MINUS unary | exponentiation
     exponentiation := atom EXP unary | atom
-    atom := LPAREN computation RPAREN | number
-    number := INT | FLOAT
+    atom := LPAREN computation RPAREN | value
+    value := NAME | INT | FLOAT
     """
 
     def __init__(self, tokens: list[Token]) -> None:
@@ -140,9 +140,11 @@ class Parser:
         peek_at = self.next_token_index + skip
         return self.tokens[peek_at].type if peek_at < len(self.tokens) else None
 
-    def parse_number(self) -> Int | Float:
+    def parse_value(self) -> Variable | Int | Float:
         """Parses an integer or a float."""
-        if self.peek() == TokenType.INT:
+        if self.peek() == TokenType.NAME:
+            return Variable(self.eat(TokenType.NAME).value)
+        elif self.peek() == TokenType.INT:
             return Int(self.eat(TokenType.INT).value)
         else:
             return Float(self.eat(TokenType.FLOAT).value)
@@ -154,7 +156,7 @@ class Parser:
             result = self.parse_computation()
             self.eat(TokenType.RPAREN)
         else:
-            result = self.parse_number()
+            result = self.parse_value()
         return result
 
     def parse_exponentiation(self) -> Expr:

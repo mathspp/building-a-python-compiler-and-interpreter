@@ -427,3 +427,20 @@ def test_program_with_assignments():
             ),
         ]
     )
+
+
+def test_parse_variable_references():
+    code = "a = b + 3"
+    tree = Parser(list(Tokenizer(code))).parse()
+    assert tree == Program(
+        [
+            Assignment(
+                Variable("a"),
+                BinOp(
+                    "+",
+                    Variable("b"),
+                    Int(3),
+                ),
+            ),
+        ]
+    )
