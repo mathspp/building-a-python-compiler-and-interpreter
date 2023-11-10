@@ -94,6 +94,13 @@ class Interpreter:
         self.stack.push(self.stack.peek())
         self.ptr += 1
 
+    def interpret_pop_jump_if_false(self, bc: Bytecode) -> None:
+        value = self.stack.pop()
+        if not value:
+            self.ptr += bc.value
+        else:
+            self.ptr += 1  # Default behaviour is to move to the next bytecode.
+
 
 if __name__ == "__main__":
     import sys

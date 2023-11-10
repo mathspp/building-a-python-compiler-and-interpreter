@@ -162,3 +162,38 @@ def test_multiple_assignment_statements():
 )
 def test_assignments_and_references(code: str, scope: dict[str, Any]):
     assert scope == run_get_scope(code)
+
+
+def test_flat_conditionals():
+    code = """
+if 1:
+    a = 1
+    b = 1
+if 0:
+    a = 20
+    b = 20
+
+if a:
+    c = 11 - 10
+"""
+
+    assert run_get_scope(code) == {"a": 1, "b": 1, "c": 1}
+
+
+def test_nested_conditionals():
+    code = """
+if 1:
+    if 1:
+        a = 1
+
+        if 0:
+            c = 1
+
+    if a:
+        b = 1
+
+    if 5 - 5:
+        c = 1
+"""
+
+    assert run_get_scope(code) == {"a": 1, "b": 1}
