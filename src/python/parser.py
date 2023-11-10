@@ -32,6 +32,17 @@ class ExprStatement(Statement):
 
 
 @dataclass
+class Conditional(Statement):
+    condition: Expr
+    body: Body
+
+
+@dataclass
+class Body(TreeNode):
+    statements: list[Statement]
+
+
+@dataclass
 class Expr(TreeNode):
     pass
 
@@ -110,9 +121,13 @@ class Parser:
     """
     program := statement* EOF
 
-    statement := expr_statement | assignment
-    assignment := ( NAME ASSIGN )+ computation NEWLINE
+    statement := expr_statement | assignment | conditional
+
     expr_statement := computation NEWLINE
+    assignment := ( NAME ASSIGN )+ computation NEWLINE
+    conditional = IF computation COLON NEWLINE body
+
+    body := INDENT statement+ DEDENT
 
     computation := term ( (PLUS | MINUS) term )*
     term := unary ( (MUL | DIV | MOD) unary )*
