@@ -5,6 +5,8 @@ from typing import Any, Generator
 from .parser import (
     Assignment,
     BinOp,
+    Body,
+    Conditional,
     ExprStatement,
     Float,
     Int,
@@ -23,6 +25,7 @@ class BytecodeType(StrEnum):
     SAVE = auto()
     LOAD = auto()
     COPY = auto()
+    POP_JUMP_IF_FALSE = auto()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.name}"
@@ -59,6 +62,16 @@ class Compiler:
 
     def compile_Program(self, program: Program) -> BytecodeGenerator:
         for statement in program.statements:
+            yield from self._compile(statement)
+
+    def compile_Conditional(self, conditional: Conditional) -> BytecodeGenerator:
+        yield from self._compile(conditional.condition)
+        body_bytecode = list(self._compile(conditional.body))
+        yield Bytecode(BytecodeType.POP_JUMP_IF_FALSE, len(body_bytecode) + 1)
+        yield from body_bytecode
+
+    def compile_Body(self, body: Body) -> BytecodeGenerator:
+        for statement in body.statements:
             yield from self._compile(statement)
 
     def compile_Assignment(self, assignment: Assignment) -> BytecodeGenerator:
