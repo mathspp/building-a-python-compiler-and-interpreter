@@ -30,6 +30,9 @@ from python.tokenizer import Token, Tokenizer, TokenType
         ("_", Token(TokenType.NAME, "_")),
         ("a_2_c_3___", Token(TokenType.NAME, "a_2_c_3___")),
         ("=", Token(TokenType.ASSIGN)),
+        ("    1", Token(TokenType.INDENT)),
+        (":", Token(TokenType.COLON)),
+        ("if", Token(TokenType.IF)),
     ],
 )
 def test_tokenizer_recognises_each_token(code: str, token: Token):
@@ -39,10 +42,10 @@ def test_tokenizer_recognises_each_token(code: str, token: Token):
 @pytest.mark.parametrize(
     ["code", "token"],
     [
-        (" 61      ", Token(TokenType.INT, 61)),
-        ("    72345    ", Token(TokenType.INT, 72345)),
+        ("61      ", Token(TokenType.INT, 61)),
+        ("72345    ", Token(TokenType.INT, 72345)),
         ("9142351643", Token(TokenType.INT, 9142351643)),
-        ("     642357413455672", Token(TokenType.INT, 642357413455672)),
+        ("642357413455672", Token(TokenType.INT, 642357413455672)),
     ],
 )
 def test_tokenizer_long_integers(code: str, token: Token):
@@ -96,7 +99,7 @@ def test_tokenizer_additions_and_subtractions():
 
 
 def test_tokenizer_additions_and_subtractions_with_whitespace():
-    tokens = list(Tokenizer("     1+       2   +3+4-5  -   6 + 7  - 8        "))
+    tokens = list(Tokenizer("1+       2   +3+4-5  -   6 + 7  - 8        "))
     assert tokens == [
         Token(TokenType.INT, 1),
         Token(TokenType.PLUS),
@@ -213,6 +216,49 @@ def test_tokenizer_assignment_operator():
         Token(TokenType.ASSIGN),
         Token(TokenType.ASSIGN),
         Token(TokenType.INT, 5),
+        Token(TokenType.NEWLINE),
+        Token(TokenType.EOF),
+    ]
+
+
+def test_tokenizer_indentation_empty_lines():
+    """Test that empty lines with indentation are ignored."""
+    code = (
+        "1\n"
+        + "        1\n"  # 2 indents.
+        + "        \n"
+        + "        \n"
+        + "            1\n"  # 1 indent.
+        + "        \n"
+        + "            \n"
+        + "    \n"
+        + "    1\n"  # 2 dedents.
+        + "        \n"
+        + "            \n"
+        + "                    \n"
+        + "1\n"  # 1 dedent.
+        + "    \n"
+        + "            \n"
+        + "\n"
+    )
+
+    tokens = list(Tokenizer(code))
+    assert tokens == [
+        Token(TokenType.INT, 1),
+        Token(TokenType.NEWLINE),
+        Token(TokenType.INDENT),
+        Token(TokenType.INDENT),
+        Token(TokenType.INT, 1),
+        Token(TokenType.NEWLINE),
+        Token(TokenType.INDENT),
+        Token(TokenType.INT, 1),
+        Token(TokenType.NEWLINE),
+        Token(TokenType.DEDENT),
+        Token(TokenType.DEDENT),
+        Token(TokenType.INT, 1),
+        Token(TokenType.NEWLINE),
+        Token(TokenType.DEDENT),
+        Token(TokenType.INT, 1),
         Token(TokenType.NEWLINE),
         Token(TokenType.EOF),
     ]
