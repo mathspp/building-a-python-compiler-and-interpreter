@@ -79,12 +79,19 @@ def print_ast(tree: TreeNode, depth: int = 0) -> None:
     indent = "    " * depth
     node_name = tree.__class__.__name__
     match tree:
-        case Program(statements):
+        case Program(statements) | Body(statements):
             print(f"{indent}{node_name}([\n", end="")
             for statement in statements:
                 print_ast(statement, depth + 1)
                 print(",")
             print(f"{indent}])", end="")
+        case Conditional(condition, body):
+            print(f"{indent}{node_name}(")
+            print_ast(condition, depth + 1)
+            print(",")
+            print_ast(body, depth + 1)
+            print(",")
+            print(f"{indent})", end="")
         case Assignment(targets, value):
             print(f"{indent}{node_name}(")
             print(f"{indent}    [")
@@ -125,7 +132,7 @@ class Parser:
 
     expr_statement := computation NEWLINE
     assignment := ( NAME ASSIGN )+ computation NEWLINE
-    conditional = IF computation COLON NEWLINE body
+    conditional := IF computation COLON NEWLINE body
 
     body := INDENT statement+ DEDENT
 
@@ -246,10 +253,30 @@ class Parser:
         self.eat(TokenType.NEWLINE)
         return Assignment(targets, value)
 
+    def parse_body(self) -> Body:
+        """Parses the body of a compound statement."""
+        self.eat(TokenType.INDENT)
+        body = Body([])
+        while self.peek() != TokenType.DEDENT:
+            body.statements.append(self.parse_statement())
+        self.eat(TokenType.DEDENT)
+        return body
+
+    def parse_conditional(self) -> Conditional:
+        """Parses a conditional statement."""
+        self.eat(TokenType.IF)
+        condition = self.parse_computation()
+        self.eat(TokenType.COLON)
+        self.eat(TokenType.NEWLINE)
+        body = self.parse_body()
+        return Conditional(condition, body)
+
     def parse_statement(self) -> Statement:
         """Parses a statement."""
         if self.peek(skip=1) == TokenType.ASSIGN:
             return self.parse_assignment()
+        elif self.peek() == TokenType.IF:
+            return self.parse_conditional()
         else:
             return self.parse_expr_statement()
 

@@ -2,6 +2,8 @@ from python.parser import Parser
 from python.parser import (
     Assignment,
     BinOp,
+    Body,
+    Conditional,
     ExprStatement,
     Float,
     Int,
@@ -458,6 +460,83 @@ def test_consecutive_assignments():
                     Variable("c"),
                 ],
                 Int(3),
+            ),
+        ]
+    )
+
+
+def test_conditional():
+    code = "if 3 ** 4 - 80:\n    a = 3\n    b = 5"
+    tree = Parser(list(Tokenizer(code))).parse()
+    assert tree == Program(
+        [
+            Conditional(
+                BinOp(
+                    "-",
+                    BinOp(
+                        "**",
+                        Int(3),
+                        Int(4),
+                    ),
+                    Int(80),
+                ),
+                Body(
+                    [
+                        Assignment(
+                            [
+                                Variable("a"),
+                            ],
+                            Int(3),
+                        ),
+                        Assignment(
+                            [
+                                Variable("b"),
+                            ],
+                            Int(5),
+                        ),
+                    ]
+                ),
+            ),
+        ]
+    )
+
+
+def test_nested_conditionals():
+    code = "if 1:\n\ta = 3\n\tb = a\n\tif 2:\n\t\tc = 3".expandtabs(tabsize=4)
+    tree = Parser(list(Tokenizer(code))).parse()
+    assert tree == Program(
+        [
+            Conditional(
+                Int(1),
+                Body(
+                    [
+                        Assignment(
+                            [
+                                Variable("a"),
+                            ],
+                            Int(3),
+                        ),
+                        Assignment(
+                            [
+                                Variable("b"),
+                            ],
+                            Variable("a"),
+                        ),
+                        Conditional(
+                            Int(2),
+                            Body(
+                                [
+                                    Assignment(
+                                        [
+                                            Variable("c"),
+                                        ],
+                                        Int(3),
+                                    ),
+                                ]
+                            ),
+                        ),
+                    ]
+                ),
             ),
         ]
     )
