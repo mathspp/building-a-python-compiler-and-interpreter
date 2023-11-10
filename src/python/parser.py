@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from .tokenizer import Token, TokenType
 
@@ -75,52 +76,33 @@ class Variable(Expr):
     name: str
 
 
-def print_ast(tree: TreeNode, depth: int = 0) -> None:
+def print_ast(
+    obj: TreeNode | list[Any] | Any, depth: int = 0, prefix: str = ""
+) -> None:
     indent = "    " * depth
-    node_name = tree.__class__.__name__
-    match tree:
-        case Program(statements) | Body(statements):
-            print(f"{indent}{node_name}([\n", end="")
-            for statement in statements:
-                print_ast(statement, depth + 1)
+    obj_name = obj.__class__.__name__
+    if isinstance(obj, TreeNode):
+        items = list(vars(obj).items())
+        if not items:
+            print(f"{indent}{prefix}{obj_name}()", end="")
+        elif len(items) == 1 and not isinstance(items[0][1], (TreeNode, list)):
+            print(f"{indent}{prefix}{obj_name}({items[0][1]!r})", end="")
+        else:
+            print(f"{indent}{prefix}{obj_name}(")
+            for key, value in items:
+                print_ast(value, depth + 1, f"{key}=")
                 print(",")
-            print(f"{indent}])", end="")
-        case Conditional(condition, body):
-            print(f"{indent}{node_name}(")
-            print_ast(condition, depth + 1)
-            print(",")
-            print_ast(body, depth + 1)
-            print(",")
             print(f"{indent})", end="")
-        case Assignment(targets, value):
-            print(f"{indent}{node_name}(")
-            print(f"{indent}    [")
-            for target in targets:
-                print_ast(target, depth + 2)
-                print(",")
-            print(f"{indent}    ],")
+    elif isinstance(obj, list) and obj and isinstance(obj[0], TreeNode):
+        print(f"{indent}{prefix}[")
+        for value in obj:
             print_ast(value, depth + 1)
-            print(f",\n{indent})", end="")
-        case ExprStatement(expr):
-            print(f"{indent}{node_name}(\n", end="")
-            print_ast(expr, depth + 1)
-            print(f",\n{indent})", end="")
-        case UnaryOp(op, value):
-            print(f"{indent}{node_name}(\n{indent}    {op!r},")
-            print_ast(value, depth + 1)
-            print(f",\n{indent})", end="")
-        case BinOp(op, left, right):
-            print(f"{indent}{node_name}(\n{indent}    {op!r},")
-            print_ast(left, depth + 1)
             print(",")
-            print_ast(right, depth + 1)
-            print(f",\n{indent})", end="")
-        case Int(value) | Float(value) | Variable(value):
-            # (The `value` of the variable is actually its name...)
-            print(f"{indent}{node_name}({value!r})", end="")
-        case _:
-            raise RuntimeError(f"Can't print a node of type {node_name}")
-    if depth == 0:
+        print(f"{indent}]", end="")
+    else:
+        print(f"{indent}{prefix}{obj!r}", end="")
+
+    if not depth:
         print()
 
 
@@ -295,4 +277,5 @@ if __name__ == "__main__":
 
     code = sys.argv[1]
     parser = Parser(list(Tokenizer(code)))
-    print_ast(parser.parse())
+    tree = parser.parse()
+    print_ast(tree)
