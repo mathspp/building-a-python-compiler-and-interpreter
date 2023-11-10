@@ -40,7 +40,8 @@ class Interpreter:
         self.last_value_popped: Any = None
 
     def interpret(self) -> None:
-        for bc in self.bytecode:
+        while self.ptr < len(self.bytecode):
+            bc = self.bytecode[self.ptr]
             bc_name = bc.type.value
             interpret_method = getattr(self, f"interpret_{bc_name}", None)
             if interpret_method is None:
@@ -53,9 +54,11 @@ class Interpreter:
 
     def interpret_push(self, bc: Bytecode) -> None:
         self.stack.push(bc.value)
+        self.ptr += 1
 
     def interpret_pop(self, _: Bytecode) -> None:
         self.last_value_popped = self.stack.pop()
+        self.ptr += 1
 
     def interpret_binop(self, bc: Bytecode) -> None:
         right = self.stack.pop()
@@ -66,6 +69,7 @@ class Interpreter:
         else:
             raise RuntimeError(f"Unknown operator {bc.value}.")
         self.stack.push(result)
+        self.ptr += 1
 
     def interpret_unaryop(self, bc: Bytecode) -> None:
         result = self.stack.pop()
@@ -76,15 +80,19 @@ class Interpreter:
         else:
             raise RuntimeError(f"Unknown operator {bc.value}.")
         self.stack.push(result)
+        self.ptr += 1
 
     def interpret_save(self, bc: Bytecode) -> None:
         self.scope[bc.value] = self.stack.pop()
+        self.ptr += 1
 
     def interpret_load(self, bc: Bytecode) -> None:
         self.stack.push(self.scope[bc.value])
+        self.ptr += 1
 
     def interpret_copy(self, _: Bytecode) -> None:
         self.stack.push(self.stack.peek())
+        self.ptr += 1
 
 
 if __name__ == "__main__":
