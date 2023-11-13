@@ -77,6 +77,8 @@ class Interpreter:
             pass
         elif bc.value == "-":
             result = -result
+        elif bc.value == "not":
+            result = not result
         else:
             raise RuntimeError(f"Unknown operator {bc.value}.")
         self.stack.push(result)

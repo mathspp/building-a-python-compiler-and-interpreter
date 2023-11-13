@@ -23,7 +23,7 @@ def _run(code: str) -> Interpreter:
     return interpreter
 
 
-def run_computation(code: str) -> int:
+def run_expr(code: str) -> Any:
     return _run(code).last_value_popped
 
 
@@ -41,7 +41,7 @@ def run_get_scope(code: str) -> dict[str, Any]:
     ],
 )
 def test_simple_arithmetic(code: str, result: int):
-    assert run_computation(code) == result
+    assert run_expr(code) == result
 
 
 @pytest.mark.parametrize(
@@ -54,7 +54,7 @@ def test_simple_arithmetic(code: str, result: int):
     ],
 )
 def test_arithmetic_with_floats(code: str, result: int):
-    assert run_computation(code) == result
+    assert run_expr(code) == result
 
 
 @pytest.mark.parametrize(
@@ -66,7 +66,7 @@ def test_arithmetic_with_floats(code: str, result: int):
     ],
 )
 def test_sequences_of_additions_and_subtractions(code: str, result: int):
-    assert run_computation(code) == result
+    assert run_expr(code) == result
 
 
 @pytest.mark.parametrize(
@@ -82,7 +82,7 @@ def test_sequences_of_additions_and_subtractions(code: str, result: int):
     ],
 )
 def test_unary_operators(code: str, result: int):
-    assert run_computation(code) == result
+    assert run_expr(code) == result
 
 
 @pytest.mark.parametrize(
@@ -95,7 +95,7 @@ def test_unary_operators(code: str, result: int):
     ],
 )
 def test_parenthesised_expressions(code: str, result: int):
-    assert run_computation(code) == result
+    assert run_expr(code) == result
 
 
 @pytest.mark.parametrize(
@@ -112,7 +112,7 @@ def test_parenthesised_expressions(code: str, result: int):
     ],
 )
 def test_arithmetic_operator_precedence(code: str, correct_precedence: str):
-    assert run_computation(code) == run_computation(correct_precedence)
+    assert run_expr(code) == run_expr(correct_precedence)
 
 
 @pytest.mark.parametrize(
@@ -126,7 +126,7 @@ def test_arithmetic_operator_precedence(code: str, correct_precedence: str):
     ],
 )
 def test_all_arithmetic_operators(code: str, result: int | float):
-    assert run_computation(code) == result
+    assert run_expr(code) == result
 
 
 def test_simple_assignment():
@@ -209,3 +209,20 @@ if False:
 """
 
     assert run_get_scope(code) == {"a": 73}
+
+
+@pytest.mark.parametrize(
+    ["code", "result"],
+    [
+        ("not True", False),
+        ("not not True", True),
+        ("not not not True", False),
+        ("not not not not True", True),
+        ("not False", True),
+        ("not not False", False),
+        ("not not not False", True),
+        ("not not not not False", False),
+    ],
+)
+def test_not(code: str, result: bool):
+    assert run_expr(code) == result
