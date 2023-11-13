@@ -569,3 +569,39 @@ def test_parsing_booleans():
             ),
         ],
     )
+
+
+def test_single_negation():
+    tokens = [
+        Token(TokenType.NOT),
+        Token(TokenType.TRUE),
+    ]
+    expr_tree = Parser(tokens).parse_expr()
+    assert expr_tree == UnaryOp("not", Constant(True))
+
+
+def test_multiple_negations():
+    code = "not not not not not a"
+    tree = Parser(list(Tokenizer(code))).parse()
+    assert tree == Program(
+        [
+            ExprStatement(
+                UnaryOp(
+                    "not",
+                    UnaryOp(
+                        "not",
+                        UnaryOp(
+                            "not",
+                            UnaryOp(
+                                "not",
+                                UnaryOp(
+                                    "not",
+                                    Variable("a"),
+                                ),
+                            ),
+                        ),
+                    ),
+                )
+            )
+        ]
+    )

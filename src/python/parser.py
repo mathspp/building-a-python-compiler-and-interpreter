@@ -107,17 +107,19 @@ class Parser:
 
     statement := expr_statement | assignment | conditional
 
-    expr_statement := computation NEWLINE
-    assignment := ( NAME ASSIGN )+ computation NEWLINE
-    conditional := IF computation COLON NEWLINE body
+    expr_statement := expr NEWLINE
+    assignment := ( NAME ASSIGN )+ expr NEWLINE
+    conditional := IF expr COLON NEWLINE body
 
     body := INDENT statement+ DEDENT
 
+    expr := negation
+    negation := NOT negation | computation
     computation := term ( (PLUS | MINUS) term )*
     term := unary ( (MUL | DIV | MOD) unary )*
     unary := PLUS unary | MINUS unary | exponentiation
     exponentiation := atom EXP unary | atom
-    atom := LPAREN computation RPAREN | value
+    atom := LPAREN expr RPAREN | value
     value := NAME | INT | FLOAT | TRUE | FALSE
     """
 
@@ -159,7 +161,7 @@ class Parser:
         """Parses a parenthesised expression or a number."""
         if self.peek() == TokenType.LPAREN:
             self.eat(TokenType.LPAREN)
-            result = self.parse_computation()
+            result = self.parse_expr()
             self.eat(TokenType.RPAREN)
         else:
             result = self.parse_value()
@@ -202,7 +204,7 @@ class Parser:
         return result
 
     def parse_computation(self) -> Expr:
-        """Parses a computation."""
+        """Parses addition and subtraction computations."""
         result: Expr
         result = self.parse_term()
 
@@ -214,9 +216,21 @@ class Parser:
 
         return result
 
+    def parse_negation(self) -> Expr:
+        """Parses a Boolean negation."""
+        if self.peek() == TokenType.NOT:
+            self.eat(TokenType.NOT)
+            return UnaryOp("not", self.parse_negation())
+        else:
+            return self.parse_computation()
+
+    def parse_expr(self) -> Expr:
+        """Parses a full expression."""
+        return self.parse_negation()
+
     def parse_expr_statement(self) -> ExprStatement:
         """Parses a standalone expression."""
-        expr = ExprStatement(self.parse_computation())
+        expr = ExprStatement(self.parse_expr())
         self.eat(TokenType.NEWLINE)
         return expr
 
@@ -230,7 +244,7 @@ class Parser:
             self.eat(TokenType.ASSIGN)
             targets.append(Variable(name_token.value))
 
-        value = self.parse_computation()
+        value = self.parse_expr()
         self.eat(TokenType.NEWLINE)
         return Assignment(targets, value)
 
@@ -246,7 +260,7 @@ class Parser:
     def parse_conditional(self) -> Conditional:
         """Parses a conditional statement."""
         self.eat(TokenType.IF)
-        condition = self.parse_computation()
+        condition = self.parse_expr()
         self.eat(TokenType.COLON)
         self.eat(TokenType.NEWLINE)
         body = self.parse_body()
