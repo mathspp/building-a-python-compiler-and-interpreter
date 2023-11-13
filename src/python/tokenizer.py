@@ -26,6 +26,7 @@ class TokenType(StrEnum):
     COLON = auto()  # :
     TRUE = auto()  # True
     FALSE = auto()  # False
+    NOT = auto()  # not
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.name}"
@@ -47,6 +48,7 @@ KEYWORDS_AS_TOKENS: dict[str, TokenType] = {
     "if": TokenType.IF,
     "True": TokenType.TRUE,
     "False": TokenType.FALSE,
+    "not": TokenType.NOT,
 }
 
 LEGAL_NAME_CHARACTERS = ascii_letters + digits + "_"
