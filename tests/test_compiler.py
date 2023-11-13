@@ -428,3 +428,29 @@ def test_multiple_conditionals():
         Bytecode(BytecodeType.PUSH, 11),
         Bytecode(BytecodeType.SAVE, "eleven"),
     ]
+
+
+def test_compile_booleans():
+    tree = Program(
+        statements=[
+            Assignment(
+                targets=[
+                    Variable("a"),
+                ],
+                value=Constant(True),
+            ),
+            Assignment(
+                targets=[
+                    Variable("b"),
+                ],
+                value=Constant(False),
+            ),
+        ],
+    )
+    bytecode = list(Compiler(tree).compile())
+    assert bytecode == [
+        Bytecode(BytecodeType.PUSH, True),
+        Bytecode(BytecodeType.SAVE, "a"),
+        Bytecode(BytecodeType.PUSH, False),
+        Bytecode(BytecodeType.SAVE, "b"),
+    ]

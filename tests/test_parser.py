@@ -539,3 +539,33 @@ def test_nested_conditionals():
             ),
         ]
     )
+
+
+def test_parsing_booleans():
+    code = """if True:
+    a = False
+    b = True"""
+    tree = Parser(list(Tokenizer(code))).parse()
+    assert tree == Program(
+        statements=[
+            Conditional(
+                condition=Constant(True),
+                body=Body(
+                    statements=[
+                        Assignment(
+                            targets=[
+                                Variable("a"),
+                            ],
+                            value=Constant(False),
+                        ),
+                        Assignment(
+                            targets=[
+                                Variable("b"),
+                            ],
+                            value=Constant(True),
+                        ),
+                    ],
+                ),
+            ),
+        ],
+    )

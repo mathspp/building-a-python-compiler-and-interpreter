@@ -197,3 +197,15 @@ if 1:
 """
 
     assert run_get_scope(code) == {"a": 1, "b": 1}
+
+
+def test_booleans():
+    code = """
+if True:
+    a = 73
+
+if False:
+    b = 73
+"""
+
+    assert run_get_scope(code) == {"a": 73}

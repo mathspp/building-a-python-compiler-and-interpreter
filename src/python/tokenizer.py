@@ -24,6 +24,8 @@ class TokenType(StrEnum):
     DEDENT = auto()  # dedentation
     IF = auto()  # if
     COLON = auto()  # :
+    TRUE = auto()  # True
+    FALSE = auto()  # False
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.name}"
@@ -43,6 +45,8 @@ CHARS_AS_TOKENS = {
 
 KEYWORDS_AS_TOKENS: dict[str, TokenType] = {
     "if": TokenType.IF,
+    "True": TokenType.TRUE,
+    "False": TokenType.FALSE,
 }
 
 LEGAL_NAME_CHARACTERS = ascii_letters + digits + "_"

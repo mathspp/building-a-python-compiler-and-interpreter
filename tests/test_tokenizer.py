@@ -33,6 +33,8 @@ from python.tokenizer import Token, Tokenizer, TokenType
         ("    1", Token(TokenType.INDENT)),
         (":", Token(TokenType.COLON)),
         ("if", Token(TokenType.IF)),
+        ("True", Token(TokenType.TRUE)),
+        ("False", Token(TokenType.FALSE)),
     ],
 )
 def test_tokenizer_recognises_each_token(code: str, token: Token):
@@ -259,6 +261,22 @@ def test_tokenizer_indentation_empty_lines():
         Token(TokenType.NEWLINE),
         Token(TokenType.DEDENT),
         Token(TokenType.INT, 1),
+        Token(TokenType.NEWLINE),
+        Token(TokenType.EOF),
+    ]
+
+
+def test_tokenizer_boolean_values():
+    code = "a = True\nb=False"
+    tokens = list(Tokenizer(code))
+    assert tokens == [
+        Token(TokenType.NAME, "a"),
+        Token(TokenType.ASSIGN),
+        Token(TokenType.TRUE),
+        Token(TokenType.NEWLINE),
+        Token(TokenType.NAME, "b"),
+        Token(TokenType.ASSIGN),
+        Token(TokenType.FALSE),
         Token(TokenType.NEWLINE),
         Token(TokenType.EOF),
     ]

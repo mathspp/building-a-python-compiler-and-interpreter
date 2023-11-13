@@ -61,11 +61,14 @@ class BinOp(Expr):
     right: Expr
 
 
-
-
 @dataclass
 class Variable(Expr):
     name: str
+
+
+@dataclass
+class Constant(Expr):
+    value: bool | float | int
 
 
 def print_ast(
@@ -115,7 +118,7 @@ class Parser:
     unary := PLUS unary | MINUS unary | exponentiation
     exponentiation := atom EXP unary | atom
     atom := LPAREN computation RPAREN | value
-    value := NAME | INT | FLOAT
+    value := NAME | INT | FLOAT | TRUE | FALSE
     """
 
     def __init__(self, tokens: list[Token]) -> None:
@@ -146,6 +149,9 @@ class Parser:
             return Variable(self.eat(TokenType.NAME).value)
         elif next_token_type in {TokenType.INT, TokenType.FLOAT}:
             return Constant(self.eat(next_token_type).value)
+        elif next_token_type in {TokenType.TRUE, TokenType.FALSE}:
+            self.eat(next_token_type)
+            return Constant(next_token_type == TokenType.TRUE)
         else:
             raise RuntimeError(f"Can't parse {next_token_type} as a value.")
 
