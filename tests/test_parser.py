@@ -4,9 +4,8 @@ from python.parser import (
     BinOp,
     Body,
     Conditional,
+    Constant,
     ExprStatement,
-    Float,
-    Int,
     Program,
     UnaryOp,
     Variable,
@@ -25,8 +24,8 @@ def test_parsing_addition():
     tree = Parser(tokens).parse_computation()
     assert tree == BinOp(
         "+",
-        Int(3),
-        Int(5),
+        Constant(3),
+        Constant(5),
     )
 
 
@@ -39,8 +38,8 @@ def test_parsing_subtraction():
     tree = Parser(tokens).parse_computation()
     assert tree == BinOp(
         "-",
-        Int(5),
-        Int(2),
+        Constant(5),
+        Constant(2),
     )
 
 
@@ -53,8 +52,8 @@ def test_parsing_addition_with_floats():
     tree = Parser(tokens).parse_computation()
     assert tree == BinOp(
         "+",
-        Float(0.5),
-        Int(5),
+        Constant(0.5),
+        Constant(5),
     )
 
 
@@ -67,8 +66,8 @@ def test_parsing_subtraction_with_floats():
     tree = Parser(tokens).parse_computation()
     assert tree == BinOp(
         "-",
-        Float(5.0),
-        Float(0.2),
+        Constant(5.0),
+        Constant(0.2),
     )
 
 
@@ -77,7 +76,7 @@ def test_parsing_single_integer():
         Token(TokenType.INT, 3),
     ]
     tree = Parser(tokens).parse_computation()
-    assert tree == Int(3)
+    assert tree == Constant(3)
 
 
 def test_parsing_single_float():
@@ -85,7 +84,7 @@ def test_parsing_single_float():
         Token(TokenType.FLOAT, 3.0),
     ]
     tree = Parser(tokens).parse_computation()
-    assert tree == Float(3.0)
+    assert tree == Constant(3.0)
 
 
 def test_parsing_addition_then_subtraction():
@@ -101,10 +100,10 @@ def test_parsing_addition_then_subtraction():
         "-",
         BinOp(
             "+",
-            Int(3),
-            Int(5),
+            Constant(3),
+            Constant(5),
         ),
-        Float(0.2),
+        Constant(0.2),
     )
 
 
@@ -121,10 +120,10 @@ def test_parsing_subtraction_then_addition():
         "+",
         BinOp(
             "-",
-            Int(3),
-            Int(5),
+            Constant(3),
+            Constant(5),
         ),
-        Float(0.2),
+        Constant(0.2),
     )
 
 
@@ -154,16 +153,16 @@ def test_parsing_many_additions_and_subtractions():
                     "-",
                     BinOp(
                         "+",
-                        Int(3),
-                        Int(5),
+                        Constant(3),
+                        Constant(5),
                     ),
-                    Int(7),
+                    Constant(7),
                 ),
-                Float(1.2),
+                Constant(1.2),
             ),
-            Float(2.4),
+            Constant(2.4),
         ),
-        Float(3.6),
+        Constant(3.6),
     )
 
 
@@ -173,7 +172,7 @@ def test_parsing_unary_minus():
         Token(TokenType.INT, 3),
     ]
     tree = Parser(tokens).parse_computation()
-    assert tree == UnaryOp("-", Int(3))
+    assert tree == UnaryOp("-", Constant(3))
 
 
 def test_parsing_unary_plus():
@@ -182,7 +181,7 @@ def test_parsing_unary_plus():
         Token(TokenType.FLOAT, 3.0),
     ]
     tree = Parser(tokens).parse_computation()
-    assert tree == UnaryOp("+", Float(3))
+    assert tree == UnaryOp("+", Constant(3))
 
 
 def test_parsing_unary_operators():
@@ -207,12 +206,12 @@ def test_parsing_unary_operators():
                     "+",
                     UnaryOp(
                         "+",
-                        Float(3.5),
+                        Constant(3.5),
                     ),
                 ),
             ),
         ),
-        Int(2),
+        Constant(2),
     )
 
 
@@ -230,11 +229,11 @@ def test_parsing_parentheses():
     tree = Parser(tokens).parse_computation()
     assert tree == BinOp(
         "+",
-        Int(1),
+        Constant(1),
         BinOp(
             "+",
-            Int(2),
-            Int(3),
+            Constant(2),
+            Constant(3),
         ),
     )
 
@@ -261,11 +260,11 @@ def test_parsing_parentheses_around_single_number():
     tree = Parser(tokens).parse_computation()
     assert tree == BinOp(
         "+",
-        Int(1),
+        Constant(1),
         BinOp(
             "+",
-            Int(2),
-            Int(3),
+            Constant(2),
+            Constant(3),
         ),
     )
 
@@ -315,27 +314,27 @@ def test_parsing_more_operators():
                 "/",
                 BinOp(
                     "%",
-                    Int(1),
+                    Constant(1),
                     UnaryOp(
                         "-",
                         BinOp(
                             "**",
-                            Int(2),
+                            Constant(2),
                             UnaryOp(
                                 "-",
-                                Int(3),
+                                Constant(3),
                             ),
                         ),
                     ),
                 ),
-                Int(5),
+                Constant(5),
             ),
-            Int(2),
+            Constant(2),
         ),
         BinOp(
             "**",
-            Int(2),
-            Int(3),
+            Constant(2),
+            Constant(3),
         ),
     )
 
@@ -348,10 +347,10 @@ def test_parsing_multiple_statements():
             ExprStatement(
                 BinOp(
                     "%",
-                    Int(1),
+                    Constant(1),
                     UnaryOp(
                         "-",
-                        Int(2),
+                        Constant(2),
                     ),
                 ),
             ),
@@ -360,13 +359,13 @@ def test_parsing_multiple_statements():
                     "/",
                     BinOp(
                         "**",
-                        Int(5),
+                        Constant(5),
                         UnaryOp(
                             "-",
-                            Int(3),
+                            Constant(3),
                         ),
                     ),
-                    Int(5),
+                    Constant(5),
                 ),
             ),
             ExprStatement(
@@ -374,13 +373,13 @@ def test_parsing_multiple_statements():
                     "+",
                     BinOp(
                         "*",
-                        Int(1),
-                        Int(2),
+                        Constant(1),
+                        Constant(2),
                     ),
                     BinOp(
                         "**",
-                        Int(2),
-                        Int(3),
+                        Constant(2),
+                        Constant(3),
                     ),
                 ),
             ),
@@ -398,7 +397,7 @@ def test_parsing_simple_assignment():
     tree = Parser(tokens).parse_assignment()
     assert tree == Assignment(
         [Variable("a")],
-        Int(5),
+        Constant(5),
     )
 
 
@@ -409,11 +408,11 @@ def test_program_with_assignments():
         [
             Assignment(
                 [Variable("a")],
-                Int(3),
+                Constant(3),
             ),
             Assignment(
                 [Variable("b")],
-                Int(7),
+                Constant(7),
             ),
             Assignment(
                 [Variable("d")],
@@ -421,10 +420,10 @@ def test_program_with_assignments():
                     "%",
                     BinOp(
                         "**",
-                        Int(2),
-                        Int(2),
+                        Constant(2),
+                        Constant(2),
                     ),
-                    Int(4),
+                    Constant(4),
                 ),
             ),
         ]
@@ -441,7 +440,7 @@ def test_parse_variable_references():
                 BinOp(
                     "+",
                     Variable("b"),
-                    Int(3),
+                    Constant(3),
                 ),
             ),
         ]
@@ -459,7 +458,7 @@ def test_consecutive_assignments():
                     Variable("b"),
                     Variable("c"),
                 ],
-                Int(3),
+                Constant(3),
             ),
         ]
     )
@@ -475,10 +474,10 @@ def test_conditional():
                     "-",
                     BinOp(
                         "**",
-                        Int(3),
-                        Int(4),
+                        Constant(3),
+                        Constant(4),
                     ),
-                    Int(80),
+                    Constant(80),
                 ),
                 Body(
                     [
@@ -486,13 +485,13 @@ def test_conditional():
                             [
                                 Variable("a"),
                             ],
-                            Int(3),
+                            Constant(3),
                         ),
                         Assignment(
                             [
                                 Variable("b"),
                             ],
-                            Int(5),
+                            Constant(5),
                         ),
                     ]
                 ),
@@ -507,14 +506,14 @@ def test_nested_conditionals():
     assert tree == Program(
         [
             Conditional(
-                Int(1),
+                Constant(1),
                 Body(
                     [
                         Assignment(
                             [
                                 Variable("a"),
                             ],
-                            Int(3),
+                            Constant(3),
                         ),
                         Assignment(
                             [
@@ -523,14 +522,14 @@ def test_nested_conditionals():
                             Variable("a"),
                         ),
                         Conditional(
-                            Int(2),
+                            Constant(2),
                             Body(
                                 [
                                     Assignment(
                                         [
                                             Variable("c"),
                                         ],
-                                        Int(3),
+                                        Constant(3),
                                     ),
                                 ]
                             ),

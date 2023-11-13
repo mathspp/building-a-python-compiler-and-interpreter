@@ -4,9 +4,8 @@ from python.parser import (
     BinOp,
     Body,
     Conditional,
+    Constant,
     ExprStatement,
-    Float,
-    Int,
     Program,
     UnaryOp,
     Variable,
@@ -16,8 +15,8 @@ from python.parser import (
 def test_compile_addition():
     tree = BinOp(
         "+",
-        Int(3),
-        Int(5),
+        Constant(3),
+        Constant(5),
     )
     bytecode = list(Compiler(tree).compile())
     assert bytecode == [
@@ -30,8 +29,8 @@ def test_compile_addition():
 def test_compile_subtraction():
     tree = BinOp(
         "-",
-        Int(5),
-        Int(2),
+        Constant(5),
+        Constant(2),
     )
     bytecode = list(Compiler(tree).compile())
     assert bytecode == [
@@ -52,16 +51,16 @@ def test_compile_nested_additions_and_subtractions():
                     "-",
                     BinOp(
                         "+",
-                        Int(3),
-                        Int(5),
+                        Constant(3),
+                        Constant(5),
                     ),
-                    Int(7),
+                    Constant(7),
                 ),
-                Float(1.2),
+                Constant(1.2),
             ),
-            Float(2.4),
+            Constant(2.4),
         ),
-        Float(3.6),
+        Constant(3.6),
     )
     bytecode = list(Compiler(tree).compile())
     assert bytecode == [
@@ -80,7 +79,7 @@ def test_compile_nested_additions_and_subtractions():
 
 
 def test_compile_unary_minus():
-    tree = UnaryOp("-", Int(3))
+    tree = UnaryOp("-", Constant(3))
     bytecode = list(Compiler(tree).compile())
     assert bytecode == [
         Bytecode(BytecodeType.PUSH, 3),
@@ -89,7 +88,7 @@ def test_compile_unary_minus():
 
 
 def test_compile_unary_plus():
-    tree = UnaryOp("+", Int(3))
+    tree = UnaryOp("+", Constant(3))
     bytecode = list(Compiler(tree).compile())
     assert bytecode == [
         Bytecode(BytecodeType.PUSH, 3),
@@ -106,7 +105,7 @@ def test_compile_unary_operations():
                 "+",
                 UnaryOp(
                     "+",
-                    Float(3.5),
+                    Constant(3.5),
                 ),
             ),
         ),
@@ -124,8 +123,8 @@ def test_compile_unary_operations():
 def test_compile_multiplication():
     tree = BinOp(
         "*",
-        Int(3),
-        Float(3.14),
+        Constant(3),
+        Constant(3.14),
     )
     bytecode = list(Compiler(tree).compile())
     assert bytecode == [
@@ -138,8 +137,8 @@ def test_compile_multiplication():
 def test_compile_division():
     tree = BinOp(
         "/",
-        Int(1),
-        Int(2),
+        Constant(1),
+        Constant(2),
     )
     bytecode = list(Compiler(tree).compile())
     assert bytecode == [
@@ -152,8 +151,8 @@ def test_compile_division():
 def test_compile_exponentiation():
     tree = BinOp(
         "**",
-        Float(0.1),
-        Float(3.14),
+        Constant(0.1),
+        Constant(3.14),
     )
     bytecode = list(Compiler(tree).compile())
     assert bytecode == [
@@ -166,8 +165,8 @@ def test_compile_exponentiation():
 def test_compile_modulo():
     tree = BinOp(
         "%",
-        Int(-3),
-        Float(-5.6),
+        Constant(-3),
+        Constant(-5.6),
     )
     bytecode = list(Compiler(tree).compile())
     assert bytecode == [
@@ -180,9 +179,9 @@ def test_compile_modulo():
 def test_compile_program_and_expr_statement():
     tree = Program(
         [
-            ExprStatement(Int(1)),
-            ExprStatement(Float(2.0)),
-            ExprStatement(BinOp("+", Float(3.0), Float(4.0))),
+            ExprStatement(Constant(1)),
+            ExprStatement(Constant(2.0)),
+            ExprStatement(BinOp("+", Constant(3.0), Constant(4.0))),
         ]
     )
     bytecode = list(Compiler(tree).compile())
@@ -201,7 +200,7 @@ def test_compile_program_and_expr_statement():
 def test_compile_assignment():
     tree = Assignment(
         [Variable("_123")],
-        Int(3),
+        Constant(3),
     )
     bytecode = list(Compiler(tree).compile())
     assert bytecode == [
@@ -213,9 +212,9 @@ def test_compile_assignment():
 def test_compile_program_with_assignments():
     tree = Program(
         [
-            Assignment([Variable("a")], Int(3)),
-            ExprStatement(BinOp("**", Int(4), Int(5))),
-            Assignment([Variable("b")], Int(7)),
+            Assignment([Variable("a")], Constant(3)),
+            ExprStatement(BinOp("**", Constant(4), Constant(5))),
+            Assignment([Variable("b")], Constant(7)),
         ]
     )
     bytecode = list(Compiler(tree).compile())
@@ -239,7 +238,7 @@ def test_compile_variable_reference():
                 BinOp(
                     "+",
                     Variable("b"),
-                    Int(3),
+                    Constant(3),
                 ),
             ),
         ]
@@ -262,7 +261,7 @@ def test_compile_consecutive_assignments():
                     Variable("b"),
                     Variable("c"),
                 ],
-                Int(3),
+                Constant(3),
             ),
         ]
     )
@@ -288,7 +287,7 @@ def test_single_conditional():
                             targets=[
                                 Variable("visited"),
                             ],
-                            value=Int(1),
+                            value=Constant(1),
                         ),
                     ],
                 ),
@@ -297,7 +296,7 @@ def test_single_conditional():
                 targets=[
                     Variable("done"),
                 ],
-                value=Int(1),
+                value=Constant(1),
             ),
         ],
     )
@@ -339,7 +338,7 @@ def test_multiple_conditionals():
                             targets=[
                                 Variable("two"),
                             ],
-                            value=Int(2),
+                            value=Constant(2),
                         ),
                         Conditional(
                             condition=Variable("three"),
@@ -349,13 +348,13 @@ def test_multiple_conditionals():
                                         targets=[
                                             Variable("four"),
                                         ],
-                                        value=Int(4),
+                                        value=Constant(4),
                                     ),
                                     Assignment(
                                         targets=[
                                             Variable("five"),
                                         ],
-                                        value=Int(5),
+                                        value=Constant(5),
                                     ),
                                 ],
                             ),
@@ -368,7 +367,7 @@ def test_multiple_conditionals():
                                         targets=[
                                             Variable("seven"),
                                         ],
-                                        value=Int(7),
+                                        value=Constant(7),
                                     ),
                                 ],
                             ),
@@ -377,7 +376,7 @@ def test_multiple_conditionals():
                             targets=[
                                 Variable("eight"),
                             ],
-                            value=Int(8),
+                            value=Constant(8),
                         ),
                         Conditional(
                             condition=Variable("nine"),
@@ -387,7 +386,7 @@ def test_multiple_conditionals():
                                         targets=[
                                             Variable("ten"),
                                         ],
-                                        value=Int(10),
+                                        value=Constant(10),
                                     ),
                                 ],
                             ),
@@ -399,7 +398,7 @@ def test_multiple_conditionals():
                 targets=[
                     Variable("eleven"),
                 ],
-                value=Int(11),
+                value=Constant(11),
             ),
         ],
     )

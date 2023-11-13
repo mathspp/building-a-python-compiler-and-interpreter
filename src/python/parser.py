@@ -61,14 +61,6 @@ class BinOp(Expr):
     right: Expr
 
 
-@dataclass
-class Int(Expr):
-    value: int
-
-
-@dataclass
-class Float(Expr):
-    value: float
 
 
 @dataclass
@@ -147,14 +139,15 @@ class Parser:
         peek_at = self.next_token_index + skip
         return self.tokens[peek_at].type if peek_at < len(self.tokens) else None
 
-    def parse_value(self) -> Variable | Int | Float:
+    def parse_value(self) -> Variable | Constant:
         """Parses an integer or a float."""
-        if self.peek() == TokenType.NAME:
+        next_token_type = self.peek()
+        if next_token_type == TokenType.NAME:
             return Variable(self.eat(TokenType.NAME).value)
-        elif self.peek() == TokenType.INT:
-            return Int(self.eat(TokenType.INT).value)
+        elif next_token_type in {TokenType.INT, TokenType.FLOAT}:
+            return Constant(self.eat(next_token_type).value)
         else:
-            return Float(self.eat(TokenType.FLOAT).value)
+            raise RuntimeError(f"Can't parse {next_token_type} as a value.")
 
     def parse_atom(self) -> Expr:
         """Parses a parenthesised expression or a number."""

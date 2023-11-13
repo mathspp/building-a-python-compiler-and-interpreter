@@ -7,9 +7,8 @@ from .parser import (
     BinOp,
     Body,
     Conditional,
+    Constant,
     ExprStatement,
-    Float,
-    Int,
     Program,
     TreeNode,
     UnaryOp,
@@ -96,11 +95,8 @@ class Compiler:
         yield from self._compile(tree.right)
         yield Bytecode(BytecodeType.BINOP, tree.op)
 
-    def compile_Int(self, tree: Int) -> BytecodeGenerator:
-        yield Bytecode(BytecodeType.PUSH, tree.value)
-
-    def compile_Float(self, tree: Float) -> BytecodeGenerator:
-        yield Bytecode(BytecodeType.PUSH, tree.value)
+    def compile_Constant(self, constant: Constant) -> BytecodeGenerator:
+        yield Bytecode(BytecodeType.PUSH, constant.value)
 
     def compile_Variable(self, var: Variable) -> BytecodeGenerator:
         yield Bytecode(BytecodeType.LOAD, var.name)
