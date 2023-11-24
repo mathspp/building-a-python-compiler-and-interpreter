@@ -27,6 +27,8 @@ class TokenType(StrEnum):
     TRUE = auto()  # True
     FALSE = auto()  # False
     NOT = auto()  # not
+    AND = auto()  # and
+    OR = auto()  # or
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.name}"
@@ -49,6 +51,8 @@ KEYWORDS_AS_TOKENS: dict[str, TokenType] = {
     "True": TokenType.TRUE,
     "False": TokenType.FALSE,
     "not": TokenType.NOT,
+    "and": TokenType.AND,
+    "or": TokenType.OR,
 }
 
 LEGAL_NAME_CHARACTERS = ascii_letters + digits + "_"

@@ -36,6 +36,8 @@ from python.tokenizer import Token, Tokenizer, TokenType
         ("True", Token(TokenType.TRUE)),
         ("False", Token(TokenType.FALSE)),
         ("not", Token(TokenType.NOT)),
+        ("and", Token(TokenType.AND)),
+        ("or", Token(TokenType.OR)),
     ],
 )
 def test_tokenizer_recognises_each_token(code: str, token: Token):
