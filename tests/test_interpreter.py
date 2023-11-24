@@ -226,3 +226,59 @@ if False:
 )
 def test_not(code: str, result: bool):
     assert run_expr(code) == result
+
+
+@pytest.mark.parametrize(
+    ["code", "result"],
+    [
+        ("True and True", True),
+        ("True and False", False),
+        ("False and True", False),
+        ("False and False", False),
+        ("True or True", True),
+        ("True or False", True),
+        ("False or True", True),
+        ("False or False", False),
+        # for a, b, c in product([True, False], repeat=3): print(f'("{a} and {b} or {c}", {a and b or c}),')
+        ("True and True or True", True),
+        ("True and True or False", True),
+        ("True and False or True", True),
+        ("True and False or False", False),
+        ("False and True or True", True),
+        ("False and True or False", False),
+        ("False and False or True", True),
+        ("False and False or False", False),
+        # for a, b, c in product([True, False], repeat=3): print(f'("{a} or {b} and {c}", {a or b and c}),')
+        ("True or True and True", True),
+        ("True or True and False", True),
+        ("True or False and True", True),
+        ("True or False and False", True),
+        ("False or True and True", True),
+        ("False or True and False", False),
+        ("False or False and True", False),
+        ("False or False and False", False),
+    ],
+)
+def test_boolean_operators(code: str, result: bool):
+    assert run_expr(code) == result
+
+
+@pytest.mark.parametrize(
+    ["code", "result"],
+    [
+        ("1 and 2", 2),
+        ("0 and 2", 0),
+        ("1 or 2", 1),
+        ("0 or 2", 2),
+        ("1 and 2 and 3", 3),
+        ("1 and 2 and 0", 0),
+        ("1 and 0 and 3", 0),
+        ("0 and 2 and 3", 0),
+        ("1 or 2 or 3", 1),
+        ("0 or 2 or 3", 2),
+        ("0 or 0 or 3", 3),
+        ("0 or 0 or 0", 0),
+    ],
+)
+def test_boolean_short_circuiting(code: str, result: int):
+    assert run_expr(code) == result

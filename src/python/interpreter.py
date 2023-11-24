@@ -103,6 +103,13 @@ class Interpreter:
         else:
             self.ptr += 1  # Default behaviour is to move to the next bytecode.
 
+    def interpret_pop_jump_if_true(self, bc: Bytecode) -> None:
+        value = self.stack.pop()
+        if value:
+            self.ptr += bc.value
+        else:
+            self.ptr += 1  # Default behaviour is to move to the next bytecode.
+
 
 if __name__ == "__main__":
     import sys
