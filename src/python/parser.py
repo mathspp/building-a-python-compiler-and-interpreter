@@ -49,6 +49,12 @@ class Expr(TreeNode):
 
 
 @dataclass
+class BoolOp(Expr):
+    op: str
+    values: list[Expr]
+
+
+@dataclass
 class UnaryOp(Expr):
     op: str
     value: Expr
@@ -113,7 +119,9 @@ class Parser:
 
     body := INDENT statement+ DEDENT
 
-    expr := negation
+    expr := alternative
+    alternative := conjunction ( OR conjunction )*
+    conjunction := negation ( AND negation ) *
     negation := NOT negation | computation
     computation := term ( (PLUS | MINUS) term )*
     term := unary ( (MUL | DIV | MOD) unary )*
@@ -224,9 +232,29 @@ class Parser:
         else:
             return self.parse_computation()
 
+    def parse_conjunction(self) -> Expr:
+        """Parses a Boolean conjunction (and)."""
+        values: list[Expr] = [self.parse_negation()]
+
+        while self.peek() == TokenType.AND:
+            self.eat(TokenType.AND)
+            values.append(self.parse_negation())
+
+        return values[0] if len(values) == 1 else BoolOp("and", values)
+
+    def parse_alternative(self) -> Expr:
+        """Parses a Boolean alternative (or)."""
+        values: list[Expr] = [self.parse_conjunction()]
+
+        while self.peek() == TokenType.OR:
+            self.eat(TokenType.OR)
+            values.append(self.parse_conjunction())
+
+        return values[0] if len(values) == 1 else BoolOp("or", values)
+
     def parse_expr(self) -> Expr:
         """Parses a full expression."""
-        return self.parse_negation()
+        return self.parse_alternative()
 
     def parse_expr_statement(self) -> ExprStatement:
         """Parses a standalone expression."""

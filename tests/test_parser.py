@@ -3,6 +3,7 @@ from python.parser import (
     Assignment,
     BinOp,
     Body,
+    BoolOp,
     Conditional,
     Constant,
     ExprStatement,
@@ -604,4 +605,36 @@ def test_multiple_negations():
                 )
             )
         ]
+    )
+
+
+def test_parsing_boolean_operators():
+    code = "a and b and c or c and d or e"
+    tree = Parser(list(Tokenizer(code))).parse()
+    assert tree == Program(
+        statements=[
+            ExprStatement(
+                expr=BoolOp(
+                    op="or",
+                    values=[
+                        BoolOp(
+                            op="and",
+                            values=[
+                                Variable("a"),
+                                Variable("b"),
+                                Variable("c"),
+                            ],
+                        ),
+                        BoolOp(
+                            op="and",
+                            values=[
+                                Variable("c"),
+                                Variable("d"),
+                            ],
+                        ),
+                        Variable("e"),
+                    ],
+                ),
+            ),
+        ],
     )
