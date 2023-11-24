@@ -6,6 +6,7 @@ from .parser import (
     Assignment,
     BinOp,
     Body,
+    BoolOp,
     Conditional,
     Constant,
     ExprStatement,
@@ -25,6 +26,7 @@ class BytecodeType(StrEnum):
     LOAD = auto()
     COPY = auto()
     POP_JUMP_IF_FALSE = auto()
+    POP_JUMP_IF_TRUE = auto()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.name}"
@@ -85,6 +87,26 @@ class Compiler:
     def compile_ExprStatement(self, expression: ExprStatement) -> BytecodeGenerator:
         yield from self._compile(expression.expr)
         yield Bytecode(BytecodeType.POP)
+
+    def compile_BoolOp(self, tree: BoolOp) -> BytecodeGenerator:
+        compiled_values = [list(self._compile(value)) for value in tree.values]
+        compiled_lengths = [len(bytecode) for bytecode in compiled_values]
+        jump_bytecode = (
+            BytecodeType.POP_JUMP_IF_FALSE
+            if tree.op == "and"
+            else BytecodeType.POP_JUMP_IF_TRUE
+        )
+
+        for emitted, compiled_value in enumerate(compiled_values[:-1], start=1):
+            yield from compiled_value
+            jump_segments_missing = len(tree.values) - emitted - 1
+            jump_location = (
+                sum(compiled_lengths[emitted:]) + jump_segments_missing * 3 + 2
+            )
+            yield Bytecode(BytecodeType.COPY)
+            yield Bytecode(jump_bytecode, jump_location)
+            yield Bytecode(BytecodeType.POP)
+        yield from compiled_values[-1]
 
     def compile_UnaryOp(self, tree: UnaryOp) -> BytecodeGenerator:
         yield from self._compile(tree.value)

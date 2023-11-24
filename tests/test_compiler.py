@@ -1,8 +1,11 @@
+import pytest
+
 from python.compiler import Bytecode, BytecodeType, Compiler
 from python.parser import (
     Assignment,
     BinOp,
     Body,
+    BoolOp,
     Conditional,
     Constant,
     ExprStatement,
@@ -453,4 +456,53 @@ def test_compile_booleans():
         Bytecode(BytecodeType.SAVE, "a"),
         Bytecode(BytecodeType.PUSH, False),
         Bytecode(BytecodeType.SAVE, "b"),
+    ]
+
+
+@pytest.mark.parametrize(
+    ["op", "jump_type"],
+    [
+        ("and", BytecodeType.POP_JUMP_IF_FALSE),
+        ("or", BytecodeType.POP_JUMP_IF_TRUE),
+    ],
+)
+def test_compile_and_short_circuiting(op: str, jump_type: BytecodeType):
+    tree = Program(
+        statements=[
+            ExprStatement(
+                BoolOp(
+                    op=op,
+                    values=[
+                        BinOp(
+                            op="+",
+                            left=Constant(1),
+                            right=Constant(2),
+                        ),
+                        Variable("c"),
+                        BinOp(
+                            op="+",
+                            left=Constant(3),
+                            right=Constant(5),
+                        ),
+                    ],
+                )
+            )
+        ]
+    )
+    bytecode = list(Compiler(tree).compile())
+    assert bytecode == [
+        Bytecode(BytecodeType.PUSH, 1),
+        Bytecode(BytecodeType.PUSH, 2),
+        Bytecode(BytecodeType.BINOP, "+"),
+        Bytecode(BytecodeType.COPY),
+        Bytecode(jump_type, 9),
+        Bytecode(BytecodeType.POP),
+        Bytecode(BytecodeType.LOAD, "c"),
+        Bytecode(BytecodeType.COPY),
+        Bytecode(jump_type, 5),
+        Bytecode(BytecodeType.POP),
+        Bytecode(BytecodeType.PUSH, 3),
+        Bytecode(BytecodeType.PUSH, 5),
+        Bytecode(BytecodeType.BINOP, "+"),
+        Bytecode(BytecodeType.POP),
     ]
