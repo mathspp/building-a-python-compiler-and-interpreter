@@ -23,6 +23,8 @@ class TokenType(StrEnum):
     INDENT = auto()  # indentation
     DEDENT = auto()  # dedentation
     IF = auto()  # if
+    ELIF = auto()  # elif
+    ELSE = auto()  # else
     COLON = auto()  # :
     TRUE = auto()  # True
     FALSE = auto()  # False
@@ -48,6 +50,8 @@ CHARS_AS_TOKENS = {
 
 KEYWORDS_AS_TOKENS: dict[str, TokenType] = {
     "if": TokenType.IF,
+    "elif": TokenType.ELIF,
+    "else": TokenType.ELSE,
     "True": TokenType.TRUE,
     "False": TokenType.FALSE,
     "not": TokenType.NOT,

@@ -38,6 +38,8 @@ from python.tokenizer import Token, Tokenizer, TokenType
         ("not", Token(TokenType.NOT)),
         ("and", Token(TokenType.AND)),
         ("or", Token(TokenType.OR)),
+        ("elif", Token(TokenType.ELIF)),
+        ("else", Token(TokenType.ELSE)),
     ],
 )
 def test_tokenizer_recognises_each_token(code: str, token: Token):
@@ -280,6 +282,21 @@ def test_tokenizer_boolean_values():
         Token(TokenType.NAME, "b"),
         Token(TokenType.ASSIGN),
         Token(TokenType.FALSE),
+        Token(TokenType.NEWLINE),
+        Token(TokenType.EOF),
+    ]
+
+
+def test_tokenizer_if_elif_else():
+    code = "if: elif: else:"
+    tokens = list(Tokenizer(code))
+    assert tokens == [
+        Token(TokenType.IF),
+        Token(TokenType.COLON),
+        Token(TokenType.ELIF),
+        Token(TokenType.COLON),
+        Token(TokenType.ELSE),
+        Token(TokenType.COLON),
         Token(TokenType.NEWLINE),
         Token(TokenType.EOF),
     ]
