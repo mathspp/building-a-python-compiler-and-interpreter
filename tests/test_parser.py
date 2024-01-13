@@ -638,3 +638,70 @@ def test_parsing_boolean_operators():
             ),
         ],
     )
+
+
+def test_parsing_if_elif_else():
+    code = """if x:
+    a = 1
+elif y:
+    b = 2
+elif z:
+    c = 3
+else:
+    d = 4"""
+    tree = Parser(list(Tokenizer(code))).parse()
+    assert tree == Program(
+        statements=[
+            Conditional(
+                condition=Variable("x"),
+                body=Body(
+                    statements=[
+                        Assignment(
+                            targets=[
+                                Variable("a"),
+                            ],
+                            value=Constant(1),
+                        ),
+                    ],
+                ),
+                orelse=[
+                    Conditional(
+                        condition=Variable("y"),
+                        body=Body(
+                            statements=[
+                                Assignment(
+                                    targets=[
+                                        Variable("b"),
+                                    ],
+                                    value=Constant(2),
+                                ),
+                            ],
+                        ),
+                        orelse=[
+                            Conditional(
+                                condition=Variable("z"),
+                                body=Body(
+                                    statements=[
+                                        Assignment(
+                                            targets=[
+                                                Variable("c"),
+                                            ],
+                                            value=Constant(3),
+                                        ),
+                                    ],
+                                ),
+                                orelse=[
+                                    Assignment(
+                                        targets=[
+                                            Variable("d"),
+                                        ],
+                                        value=Constant(4),
+                                    ),
+                                ],
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+        ],
+    )

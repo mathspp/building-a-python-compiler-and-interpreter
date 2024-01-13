@@ -36,6 +36,7 @@ class ExprStatement(Statement):
 class Conditional(Statement):
     condition: Expr
     body: Body
+    orelse: Body | None = None
 
 
 @dataclass
@@ -115,7 +116,11 @@ class Parser:
 
     expr_statement := expr NEWLINE
     assignment := ( NAME ASSIGN )+ expr NEWLINE
-    conditional := IF expr COLON NEWLINE body
+    conditional := if_statement ( elif_statement )* else_statement?
+
+    if_statement := IF expr COLON NEWLINE body
+    elif_statement := ELIF expr COLON NEWLINE body
+    else_statement := ELSE COLON NEWLINE body
 
     body := INDENT statement+ DEDENT
 
@@ -285,14 +290,46 @@ class Parser:
         self.eat(TokenType.DEDENT)
         return body
 
-    def parse_conditional(self) -> Conditional:
-        """Parses a conditional statement."""
+    def parse_else_statement(self) -> Body:
+        """Parses an `else` statement and returns its body."""
+        self.eat(TokenType.ELSE)
+        self.eat(TokenType.COLON)
+        self.eat(TokenType.NEWLINE)
+        body = self.parse_body()
+        return body
+
+    def parse_elif_statement(self) -> Conditional:
+        """Parses an `elif` conditional and returns it."""
+        self.eat(TokenType.ELIF)
+        condition = self.parse_expr()
+        self.eat(TokenType.COLON)
+        self.eat(TokenType.NEWLINE)
+        body = self.parse_body()
+        return Conditional(condition, body)
+
+    def parse_if_statement(self) -> Conditional:
+        """Parses an `if` conditional and returns it."""
         self.eat(TokenType.IF)
         condition = self.parse_expr()
         self.eat(TokenType.COLON)
         self.eat(TokenType.NEWLINE)
         body = self.parse_body()
         return Conditional(condition, body)
+
+    def parse_conditional(self) -> Conditional:
+        """Parses a conditional block."""
+        top_conditional = self.parse_if_statement()
+
+        innermost_conditional = top_conditional
+        while self.peek() == TokenType.ELIF:
+            elif_statement = self.parse_elif_statement()
+            innermost_conditional.orelse = Body([elif_statement])
+            innermost_conditional = elif_statement
+        if self.peek() == TokenType.ELSE:
+            else_statement = self.parse_else_statement()
+            innermost_conditional.orelse = else_statement
+
+        return top_conditional
 
     def parse_statement(self) -> Statement:
         """Parses a statement."""
