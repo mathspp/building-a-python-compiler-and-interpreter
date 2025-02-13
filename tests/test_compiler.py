@@ -506,3 +506,301 @@ def test_compile_and_short_circuiting(op: str, jump_type: BytecodeType):
         Bytecode(BytecodeType.BINOP, "+"),
         Bytecode(BytecodeType.POP),
     ]
+
+
+def test_compile_if_else():
+    """Test compilation of an if-else block.
+
+    if a:
+        a
+    else:
+        b
+    c
+    """
+    tree = Program(
+        statements=[
+            Conditional(
+                condition=Variable("a"),
+                body=Body(
+                    statements=[
+                        ExprStatement(
+                            expr=Variable("a"),
+                        ),
+                    ],
+                ),
+                orelse=[
+                    ExprStatement(
+                        expr=Variable("b"),
+                    ),
+                ],
+            ),
+            ExprStatement(
+                expr=Variable("c"),
+            ),
+        ],
+    )
+    bytecode = list(Compiler(tree).compile())
+    assert bytecode == [
+        Bytecode(BytecodeType.LOAD, "a"),
+        Bytecode(BytecodeType.POP_JUMP_IF_FALSE, 4),
+        Bytecode(BytecodeType.LOAD, "a"),
+        Bytecode(BytecodeType.POP),
+        Bytecode(BytecodeType.JUMP_FORWARD, 3),
+        Bytecode(BytecodeType.LOAD, "b"),
+        Bytecode(BytecodeType.POP),
+        Bytecode(BytecodeType.LOAD, "c"),
+        Bytecode(BytecodeType.POP),
+    ]
+
+
+def test_compile_if_elif():
+    """Test compilation of an if-elif block.
+
+    if a:
+        a
+    elif b:
+        b
+    c
+    """
+
+    tree = Program(
+        statements=[
+            Conditional(
+                condition=Variable("a"),
+                body=Body(
+                    statements=[
+                        ExprStatement(
+                            expr=Variable("a"),
+                        ),
+                    ],
+                ),
+                orelse=[
+                    Conditional(
+                        condition=Variable("b"),
+                        body=Body(
+                            statements=[
+                                ExprStatement(
+                                    expr=Variable("b"),
+                                ),
+                            ],
+                        ),
+                        orelse=None,
+                    ),
+                ],
+            ),
+            ExprStatement(
+                expr=Variable("c"),
+            ),
+        ],
+    )
+    bytecode = list(Compiler(tree).compile())
+    assert bytecode == [
+        Bytecode(BytecodeType.LOAD, "a"),
+        Bytecode(BytecodeType.POP_JUMP_IF_FALSE, 4),
+        Bytecode(BytecodeType.LOAD, "a"),
+        Bytecode(BytecodeType.POP),
+        Bytecode(BytecodeType.JUMP_FORWARD, 5),
+        Bytecode(BytecodeType.LOAD, "b"),
+        Bytecode(BytecodeType.POP_JUMP_IF_FALSE, 3),
+        Bytecode(BytecodeType.LOAD, "b"),
+        Bytecode(BytecodeType.POP),
+        Bytecode(BytecodeType.LOAD, "c"),
+        Bytecode(BytecodeType.POP),
+    ]
+
+
+def test_compile_if_elif_elif_elif():
+    """Test compilation of an if-elif-elif-elif block without else.
+
+    if a:
+        a
+    elif b:
+        b
+    elif c:
+        c
+    elif d:
+        d
+    e
+    """
+
+    tree = Program(
+        statements=[
+            Conditional(
+                condition=Variable("a"),
+                body=Body(
+                    statements=[
+                        ExprStatement(
+                            expr=Variable("a"),
+                        ),
+                    ],
+                ),
+                orelse=[
+                    Conditional(
+                        condition=Variable("b"),
+                        body=Body(
+                            statements=[
+                                ExprStatement(
+                                    expr=Variable("b"),
+                                ),
+                            ],
+                        ),
+                        orelse=[
+                            Conditional(
+                                condition=Variable("c"),
+                                body=Body(
+                                    statements=[
+                                        ExprStatement(
+                                            expr=Variable("c"),
+                                        ),
+                                    ],
+                                ),
+                                orelse=[
+                                    Conditional(
+                                        condition=Variable("d"),
+                                        body=Body(
+                                            statements=[
+                                                ExprStatement(
+                                                    expr=Variable("d"),
+                                                ),
+                                            ],
+                                        ),
+                                        orelse=None,
+                                    ),
+                                ],
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+            ExprStatement(
+                expr=Variable("e"),
+            ),
+        ],
+    )
+    bytecode = list(Compiler(tree).compile())
+    assert bytecode == [
+        Bytecode(BytecodeType.LOAD, "a"),
+        Bytecode(BytecodeType.POP_JUMP_IF_FALSE, 4),
+        Bytecode(BytecodeType.LOAD, "a"),
+        Bytecode(BytecodeType.POP),
+        Bytecode(BytecodeType.JUMP_FORWARD, 15),
+        Bytecode(BytecodeType.LOAD, "b"),
+        Bytecode(BytecodeType.POP_JUMP_IF_FALSE, 4),
+        Bytecode(BytecodeType.LOAD, "b"),
+        Bytecode(BytecodeType.POP),
+        Bytecode(BytecodeType.JUMP_FORWARD, 10),
+        Bytecode(BytecodeType.LOAD, "c"),
+        Bytecode(BytecodeType.POP_JUMP_IF_FALSE, 4),
+        Bytecode(BytecodeType.LOAD, "c"),
+        Bytecode(BytecodeType.POP),
+        Bytecode(BytecodeType.JUMP_FORWARD, 5),
+        Bytecode(BytecodeType.LOAD, "d"),
+        Bytecode(BytecodeType.POP_JUMP_IF_FALSE, 3),
+        Bytecode(BytecodeType.LOAD, "d"),
+        Bytecode(BytecodeType.POP),
+        Bytecode(BytecodeType.LOAD, "e"),
+        Bytecode(BytecodeType.POP),
+    ]
+
+
+def test_compile_if_elif_elif_elif_else():
+    """Test compilation of an if-elif-elif-elif block with else.
+
+    if a:
+        a
+    elif b:
+        b
+    elif c:
+        c
+    elif d:
+        d
+    else:
+        e
+    f
+    """
+
+    tree = Program(
+        statements=[
+            Conditional(
+                condition=Variable("a"),
+                body=Body(
+                    statements=[
+                        ExprStatement(
+                            expr=Variable("a"),
+                        ),
+                    ],
+                ),
+                orelse=[
+                    Conditional(
+                        condition=Variable("b"),
+                        body=Body(
+                            statements=[
+                                ExprStatement(
+                                    expr=Variable("b"),
+                                ),
+                            ],
+                        ),
+                        orelse=[
+                            Conditional(
+                                condition=Variable("c"),
+                                body=Body(
+                                    statements=[
+                                        ExprStatement(
+                                            expr=Variable("c"),
+                                        ),
+                                    ],
+                                ),
+                                orelse=[
+                                    Conditional(
+                                        condition=Variable("d"),
+                                        body=Body(
+                                            statements=[
+                                                ExprStatement(
+                                                    expr=Variable("d"),
+                                                ),
+                                            ],
+                                        ),
+                                        orelse=[
+                                            ExprStatement(
+                                                expr=Variable("e"),
+                                            ),
+                                        ],
+                                    ),
+                                ],
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+            ExprStatement(
+                expr=Variable("f"),
+            ),
+        ],
+    )
+    bytecode = list(Compiler(tree).compile())
+    assert bytecode == [
+        Bytecode(BytecodeType.LOAD, "a"),
+        Bytecode(BytecodeType.POP_JUMP_IF_FALSE, 4),
+        Bytecode(BytecodeType.LOAD, "a"),
+        Bytecode(BytecodeType.POP),
+        Bytecode(BytecodeType.JUMP_FORWARD, 18),
+        Bytecode(BytecodeType.LOAD, "b"),
+        Bytecode(BytecodeType.POP_JUMP_IF_FALSE, 4),
+        Bytecode(BytecodeType.LOAD, "b"),
+        Bytecode(BytecodeType.POP),
+        Bytecode(BytecodeType.JUMP_FORWARD, 13),
+        Bytecode(BytecodeType.LOAD, "c"),
+        Bytecode(BytecodeType.POP_JUMP_IF_FALSE, 4),
+        Bytecode(BytecodeType.LOAD, "c"),
+        Bytecode(BytecodeType.POP),
+        Bytecode(BytecodeType.JUMP_FORWARD, 8),
+        Bytecode(BytecodeType.LOAD, "d"),
+        Bytecode(BytecodeType.POP_JUMP_IF_FALSE, 4),
+        Bytecode(BytecodeType.LOAD, "d"),
+        Bytecode(BytecodeType.POP),
+        Bytecode(BytecodeType.JUMP_FORWARD, 3),
+        Bytecode(BytecodeType.LOAD, "e"),
+        Bytecode(BytecodeType.POP),
+        Bytecode(BytecodeType.LOAD, "f"),
+        Bytecode(BytecodeType.POP),
+    ]

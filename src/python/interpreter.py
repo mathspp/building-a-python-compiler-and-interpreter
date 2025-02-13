@@ -110,6 +110,9 @@ class Interpreter:
         else:
             self.ptr += 1  # Default behaviour is to move to the next bytecode.
 
+    def interpret_jump_forward(self, bc: Bytecode) -> None:
+        self.ptr += bc.value
+
 
 if __name__ == "__main__":
     import sys

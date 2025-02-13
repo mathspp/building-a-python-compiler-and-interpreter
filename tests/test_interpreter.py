@@ -1,3 +1,4 @@
+from itertools import product
 from typing import Any
 
 from python.tokenizer import Tokenizer
@@ -282,3 +283,52 @@ def test_boolean_operators(code: str, result: bool):
 )
 def test_boolean_short_circuiting(code: str, result: int):
     assert run_expr(code) == result
+
+
+@pytest.mark.parametrize(["a", "b", "c", "d"], list(product(range(2), repeat=4)))
+def test_if_elif_elif_elif_else(a: int, b: int, c: int, d: int):
+    code = f"""
+a = {a}
+b = {b}
+c = {c}
+d = {d}
+
+if a:
+    a = -a
+    b = -b
+    c = -c
+    d = -d
+    result = 4
+elif b:
+    result = 3
+    a = -a
+    b = -b
+    c = -c
+    d = -d
+elif c:
+    a = -a
+    b = -b
+    result = 2
+    c = -c
+    d = -d
+elif d:
+    a = -a
+    result = 1
+    b = -b
+    c = -c
+    d = -d
+else:
+    result = 0
+y = 5
+"""
+
+    values = [a, b, c, d]
+    result = 0 if 1 not in values else 4 - values.index(1)
+    assert run_get_scope(code) == {
+        "a": -a,
+        "b": -b,
+        "c": -c,
+        "d": -d,
+        "result": result,
+        "y": 5,
+    }

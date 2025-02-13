@@ -27,6 +27,7 @@ class BytecodeType(StrEnum):
     COPY = auto()
     POP_JUMP_IF_FALSE = auto()
     POP_JUMP_IF_TRUE = auto()
+    JUMP_FORWARD = auto()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.name}"
@@ -66,10 +67,23 @@ class Compiler:
             yield from self._compile(statement)
 
     def compile_Conditional(self, conditional: Conditional) -> BytecodeGenerator:
-        yield from self._compile(conditional.condition)
+        condition_bytecode = self._compile(conditional.condition)
         body_bytecode = list(self._compile(conditional.body))
-        yield Bytecode(BytecodeType.POP_JUMP_IF_FALSE, len(body_bytecode) + 1)
+        orelse = conditional.orelse
+        orelse_bytecode = [] if orelse is None else list(self._compile(orelse))
+
+        # Add a “jump past the else” at the end of the `if` when needed:
+        if orelse_bytecode:
+            body_bytecode.append(
+                Bytecode(BytecodeType.JUMP_FORWARD, len(orelse_bytecode) + 1)
+            )
+
+        yield from condition_bytecode
+        yield Bytecode(  # If the condition is false, jump past the body of the `if`.
+            BytecodeType.POP_JUMP_IF_FALSE, len(body_bytecode) + 1
+        )
         yield from body_bytecode
+        yield from orelse_bytecode
 
     def compile_Body(self, body: Body) -> BytecodeGenerator:
         for statement in body.statements:
